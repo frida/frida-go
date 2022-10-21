@@ -42,6 +42,7 @@ Framework search paths:
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -62,49 +63,48 @@ Interceptor.attach(Module.getExportByName(null, 'close'), {
 });
 `
 
-var simpleScript = "console.log('Erhad');"
-
 func main() {
-	frida.Init()
-	manager := frida.NewManager()
+	mgr := frida.NewManager()
 
-	fmt.Println("[*] Enumerating devices")
-	devices, _ := manager.EnumerateDevices()
-	for _, d := range devices {
-		fmt.Println("[*] Found device with id:", d.GetID())
+	devices, err := mgr.EnumerateDevices()
+	if err != nil {
+		panic(err)
 	}
 
-	device, err := manager.GetLocalDevice()
+	for _, d := range devices {
+		fmt.Println("[*] Found device with id:", d.ID())
+	}
+
+	localDev, err := mgr.GetLocalDevice()
 	if err != nil {
 		fmt.Println("Could not get USB device: ", err)
 		// Let's exit here because there is no point to do anything with nonexistent device
 		os.Exit(1)
 	}
-	fmt.Println("[*] Chosen device: ", device.GetName())
 
-	pid := 31427
-	fmt.Printf("[*] Attaching to %d\n", pid)
-	session, err := device.Attach(pid)
-	if err != nil {
-		fmt.Println("Could not attach to", pid, ":", err)
-	}
-	fmt.Printf("[*] Session @%+v\n", session)
+	fmt.Println("[*] Chosen device: ", localDev.Name())
+
+	fmt.Println("[*] Attaching to Twitter\"")
+	session, err := localDev.Attach("Twitter")
 
 	script, err := session.CreateScript(script)
 	if err != nil {
 		fmt.Println("Error ocurred creating script:", err)
 	}
-	script.OnMessage(func(msg string) {
-		fmt.Println("I have received", msg)
+
+	script.On("message", func(msg string) {
+		fmt.Println("[*] Received", msg)
 	})
-	err = script.LoadScript()
-	if err != nil {
-		fmt.Println("Error loading script", err)
+
+	if err := script.Load(); err != nil {
+		fmt.Println("Error loading script:", err)
 		os.Exit(1)
 	}
 
-	frida.RunLoop()
+	r := bufio.NewReader(os.Stdin)
+	r.ReadLine()
 }
+
 
 
 ```
@@ -112,16 +112,13 @@ func main() {
 Build and run it, output will look something like this:
 ```bash
 $ go build example.go && ./example
-[*] Enumerating devices
 [*] Found device with id: local
 [*] Found device with id: socket
-[*] Found device with id: 3f60e2688d3c6bebbdcb0871bf9abd33b55b6697
 [*] Chosen device:  Local System
-[*] Attaching to 31427
-[*] Session @&{s:0xf0265c0}
-I have received {"type":"log","level":"info","payload":"close called"}
-I have received {"type":"log","level":"info","payload":"[*] open(/Users/daemon1/Library/Group Containers/group.com.atebits.Tweetie2/failed-compositions)"}
-I have received {"type":"log","level":"info","payload":"close called"}
-I have received {"type":"log","level":"info","payload":"close called"}
-I have received {"type":"log","level":"info","payload":"[*] open(/Users/daemon1/Library/Containers/maccatalyst.com.atebits.Tweetie2/Data/Library/Caches/google-sdks-events/GDTCORFlatFileStorage/gdt_batch_data)"}
+[*] Attaching to Twitter"
+[*] Received {"type":"log","level":"info","payload":"close called"}
+[*] Received {"type":"log","level":"info","payload":"close called"}
+[*] Received {"type":"log","level":"info","payload":"[*] open(/var/folders/12/r9jwcyn16gs82k1vt0xfl7cm0000gn/T/maccatalyst.com.atebits.Tweetie2/TemporaryItems/NSIRD_Twitter_1mGUBd/fs_metrics_state)"}
+[*] Received {"type":"log","level":"info","payload":"close called"}
+[*] Received {"type":"log","level":"info","payload":"close called"}
 ```
