@@ -77,7 +77,7 @@ func main() {
 
 	localDev, err := mgr.GetLocalDevice()
 	if err != nil {
-		fmt.Println("Could not get USB device: ", err)
+		fmt.Println("Could not get local device: ", err)
 		// Let's exit here because there is no point to do anything with nonexistent device
 		os.Exit(1)
 	}
