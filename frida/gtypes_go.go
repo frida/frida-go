@@ -53,7 +53,6 @@ static struct sockaddr * new_addr() {
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -196,7 +195,6 @@ func goValueFromGValue(val *C.GValue) interface{} {
 
 func getGoValueFromGValue(val *C.GValue) interface{} {
 	gt := C.get_gvalue_gtype(val)
-	fmt.Println("Got type", C.GoString(gt))
 
 	f, ok := GTypeString[GTypeName(C.GoString(gt))]
 	if !ok {
