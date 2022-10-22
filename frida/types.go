@@ -1,5 +1,7 @@
 package frida
 
+import "fmt"
+
 // FridaDeviceType is equal to enum FridaDeviceType from frida-core
 type DeviceType int
 
@@ -74,4 +76,13 @@ func (reason SessionDetachReason) String() string {
 		"process-terminated",
 		"server-terminated",
 		"device-list"}[reason]
+}
+
+type Address struct {
+	Addr string
+	Port uint16
+}
+
+func (a *Address) String() string {
+	return fmt.Sprintf("%s:%d", a.Addr, a.Port)
 }

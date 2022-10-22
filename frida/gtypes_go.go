@@ -5,13 +5,55 @@ package frida
 #include <glib-object.h>
 #include <frida-core.h>
 #include <stdio.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 static char * get_gvalue_gtype(GValue * val) {
 	return (char*)(G_VALUE_TYPE_NAME(val));
 }
+
+static char * get_ip_str(const struct sockaddr *sa, size_t maxlen)
+{
+	char * dest = malloc(sizeof(char) * maxlen);
+    switch(sa->sa_family) {
+        case AF_INET:
+            inet_ntop(AF_INET, &(((struct sockaddr_in *)sa)->sin_addr),
+                    dest, maxlen);
+            break;
+
+        case AF_INET6:
+            inet_ntop(AF_INET6, &(((struct sockaddr_in6 *)sa)->sin6_addr),
+                    dest, maxlen);
+            break;
+
+        default:
+            strncpy(dest, "Unknown AF", maxlen);
+            return NULL;
+    }
+
+    return dest;
+}
+
+static int get_in_port(struct sockaddr *sa)
+{
+	in_port_t port;
+    if (sa->sa_family == AF_INET)
+        port = (((struct sockaddr_in*)sa)->sin_port);
+
+    port = (((struct sockaddr_in6*)sa)->sin6_port);
+
+	return (int)port;
+}
+
+static struct sockaddr * new_addr() {
+	struct sockaddr * addr = malloc(sizeof(struct sockaddr));
+	return addr;
+}
 */
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -24,9 +66,11 @@ const (
 	fridaSessionDetachReason GTypeName = "FridaSessionDetachReason"
 	fridaChild               GTypeName = "FridaChild"
 	fridaDevice              GTypeName = "FridaDevice"
+	fridaApplication         GTypeName = "FridaApplication"
 	guint                    GTypeName = "guint"
 	gint                     GTypeName = "gint"
 	gFileMonitorEvent        GTypeName = "GFileMonitorEvent"
+	gSocketAddress           GTypeName = "GSocketAddress"
 )
 
 type marshallerFunc func(val *C.GValue) interface{}
@@ -38,9 +82,11 @@ var GTypeString = map[GTypeName]marshallerFunc{
 	fridaSessionDetachReason: getFridaSessionDetachReason,
 	fridaChild:               getFridaChild,
 	fridaDevice:              getFridaDevice,
+	fridaApplication:         getFridaApplication,
 	guint:                    getInt,
 	gint:                     getInt,
 	gFileMonitorEvent:        getFm,
+	gSocketAddress:           getGSocketAddress,
 }
 
 func getString(val *C.GValue) interface{} {
@@ -103,18 +149,6 @@ func getInt(val *C.GValue) interface{} {
 func getFm(val *C.GValue) interface{} {
 	v := C.int(C.g_value_get_int(val))
 
-	/*
-		typedef enum {
-		  G_FILE_MONITOR_EVENT_CHANGED,
-		  G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT,
-		  G_FILE_MONITOR_EVENT_DELETED,
-		  G_FILE_MONITOR_EVENT_CREATED,
-		  G_FILE_MONITOR_EVENT_ATTRIBUTE_CHANGED,
-		  G_FILE_MONITOR_EVENT_PRE_UNMOUNT,
-		  G_FILE_MONITOR_EVENT_UNMOUNTED,
-		  G_FILE_MONITOR_EVENT_MOVED
-		} GFileMonitorEvent;
-	*/
 	vals := map[int]string{
 		0: "changed",
 		1: "changes-done-hint",
@@ -129,12 +163,40 @@ func getFm(val *C.GValue) interface{} {
 	return vals[int(v)]
 }
 
+func getGSocketAddress(val *C.GValue) interface{} {
+	obj := (*C.GSocketAddress)(C.g_value_get_object(val))
+	sz := C.g_socket_address_get_native_size(obj)
+	dest := C.new_addr()
+	var err *C.GError
+	C.g_socket_address_to_native(obj, (C.gpointer)(dest), C.gsize(sz), &err)
+	if err != nil {
+		panic(err)
+	}
+
+	s := C.get_ip_str(dest, C.size_t(sz))
+	port := C.get_in_port(dest)
+
+	return &Address{
+		Addr: C.GoString(s),
+		Port: uint16(port),
+	}
+}
+
+func getFridaApplication(val *C.GValue) interface{} {
+	app := (*C.FridaApplication)(C.g_value_get_object(val))
+
+	return &Application{
+		application: app,
+	}
+}
+
 func goValueFromGValue(val *C.GValue) interface{} {
 	return nil
 }
 
 func getGoValueFromGValue(val *C.GValue) interface{} {
 	gt := C.get_gvalue_gtype(val)
+	fmt.Println("Got type", C.GoString(gt))
 
 	f, ok := GTypeString[GTypeName(C.GoString(gt))]
 	if !ok {
