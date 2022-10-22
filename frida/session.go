@@ -38,11 +38,11 @@ func (f *Session) CreateScriptSnapshot(script string, opts *ScriptOptions) (*Scr
 	defer objectFree(unsafe.Pointer(sc))
 
 	if opts == nil {
-		opts = NewFridaScriptOptions("fridaSc")
+		opts = NewScriptOptions("frida-go")
 	}
 
 	if opts.GetName() == "" {
-		opts.SetName("fridaSc")
+		opts.SetName("frida-go")
 	}
 
 	var err *C.GError

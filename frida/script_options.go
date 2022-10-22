@@ -9,7 +9,7 @@ type ScriptOptions struct {
 	opts *C.FridaScriptOptions
 }
 
-func NewFridaScriptOptions(name string) *ScriptOptions {
+func NewScriptOptions(name string) *ScriptOptions {
 	opts := C.frida_script_options_new()
 
 	nameC := C.CString(name)
