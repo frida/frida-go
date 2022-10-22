@@ -30,10 +30,10 @@ type Session struct {
 }
 
 func (f *Session) CreateScript(script string) (*Script, error) {
-	return f.CreateScriptSnapshot(script, nil)
+	return f.CreateScriptWithSnapshot(script, nil)
 }
 
-func (f *Session) CreateScriptSnapshot(script string, opts *ScriptOptions) (*Script, error) {
+func (f *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (*Script, error) {
 	sc := C.CString(script)
 	defer objectFree(unsafe.Pointer(sc))
 

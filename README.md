@@ -84,7 +84,7 @@ func main() {
 
 	fmt.Println("[*] Chosen device: ", localDev.Name())
 
-	fmt.Println("[*] Attaching to Twitter\"")
+	fmt.Println("[*] Attaching to Twitter")
 	session, err := localDev.Attach("Twitter")
 
 	script, err := session.CreateScript(script)
