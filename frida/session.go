@@ -1,25 +1,6 @@
 package frida
 
-/*
-#include <frida-core.h>
-#include <glib.h>
-
-extern void onDetached(FridaSessionDetachReason reason, FridaCrash *crash);
-
-static void call_dt(FridaSessionDetachReason reason, FridaCrash *crash) {
-	onDetached(reason, crash);
-}
-
-static void on_detached (FridaSession * session, FridaSessionDetachReason reason, FridaCrash * crash, gpointer user_data)
-{
-	call_dt(reason, crash);
-}
-
-static void connect_session_detach(FridaSession *session) {
-	g_signal_connect (session, "detached", G_CALLBACK (on_detached), NULL);
-}
-
-*/
+//#include <frida-core.h>
 import "C"
 import (
 	"unsafe"
@@ -98,4 +79,17 @@ func (f *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 	bts := getGBytes(ret)
 
 	return bts, nil
+}
+
+func (f *Session) GetPortalMembership(address string, opts *PortalOptions) (*PortalMembership, error) {
+	addrC := C.CString(address)
+	defer C.free(unsafe.Pointer(addrC))
+
+	var err *C.GError
+	mem := C.frida_session_join_portal_sync(f.s, addrC, opts.opts, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	return &PortalMembership{mem}, nil
 }

@@ -59,6 +59,14 @@ const (
 	FRIDA_CHILD_ORIGIN_SPAWN
 )
 
+type RelayKind int
+
+const (
+	FRIDA_RELAY_KIND_TURN_UDP RelayKind = iota
+	FRIDA_RELAY_KIND_TURN_TCP
+	FRIDA_RELAY_KIND_TURN_TLS
+)
+
 type SessionDetachReason int
 
 const (
