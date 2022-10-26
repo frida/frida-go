@@ -238,3 +238,54 @@ func (f *Device) Bus() *Bus {
 func (f *Device) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(f.device), sigName, fn)
 }
+
+func (f *Device) InjectLibrary(target interface{}, path, entrypoint, data string) (uint, error) {
+	var pid int
+	switch v := reflect.ValueOf(target); v.Kind() {
+	case reflect.String:
+		proc, err := f.ProcessByName(target.(string))
+		if err != nil {
+			return 0, err
+		}
+		pid = proc.GetPid()
+	case reflect.Int:
+		pid = target.(int)
+	default:
+		return 0, errors.New("Expected name of app/process or PID")
+	}
+
+	if path == "" {
+		return 0, errors.New("You need to provide path to cmodule")
+	}
+
+	var pathC *C.char
+	var entrypointC *C.char = nil
+	var dataC *C.char = nil
+
+	pathC = C.CString(path)
+	defer C.free(unsafe.Pointer(pathC))
+
+	if entrypoint != "" {
+		entrypointC = C.CString(entrypoint)
+		defer C.free(unsafe.Pointer(entrypointC))
+	}
+
+	if data != "" {
+		dataC = C.CString(data)
+		defer C.free(unsafe.Pointer(dataC))
+	}
+
+	var err *C.GError
+	id := C.frida_device_inject_library_file_sync(f.device,
+		C.guint(pid),
+		pathC,
+		entrypointC,
+		dataC,
+		nil,
+		&err)
+	if err != nil {
+		return 0, &FridaError{err}
+	}
+
+	return uint(id), nil
+}
