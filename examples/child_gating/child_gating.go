@@ -22,7 +22,7 @@ func main() {
 
 	instrument := func(pid int) {
 		fmt.Printf("✔ attach(pid={%d})\n", pid)
-		sess, err := d.Attach(pid)
+		sess, err := d.Attach(pid, nil)
 		if err != nil {
 			panic(err)
 		}
@@ -77,7 +77,7 @@ func main() {
 		"-c",
 		"cat /etc/hosts",
 	})
-	fopts.SetStdio(frida.FRIDA_STDIO_PIPE)
+	fopts.SetStdio(frida.STDIO_PIPE)
 
 	fmt.Printf("✔ spawn(argv={%v})\n", fopts.GetArgv())
 	pid, err := d.Spawn("/bin/sh", fopts)

@@ -12,15 +12,15 @@ func main() {
 		fmt.Print("Device not found")
 	}
 
-	fma, err := d.FrontMostApplication(frida.FRIDA_SCOPE_FULL)
+	fma, err := d.FrontMostApplication(frida.SCOPE_FULL)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("[*] Frontmost application")
-	fmt.Printf("[*] Name: %s\n", fma.Name())
-	fmt.Printf("[*] Identifier: %s\n", fma.Identifier())
-	fmt.Printf("[*] PID: %d\n", fma.Pid())
+	fmt.Printf("[*] Name: %s\n", fma.GetName())
+	fmt.Printf("[*] Identifier: %s\n", fma.GetIdentifier())
+	fmt.Printf("[*] PID: %d\n", fma.GetPid())
 	fmt.Printf("[*] Params: \n")
 	p := fma.Params()
 

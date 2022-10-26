@@ -101,8 +101,8 @@ func (f *Script) Unload() error {
 	return nil
 }
 
-// Destroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
-func (f *Script) Destroyed() bool {
+// IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
+func (f *Script) IsDestroyed() bool {
 	destroyed := C.frida_script_is_destroyed(f.sc)
 	if int(destroyed) == 1 {
 		return true

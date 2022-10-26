@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	manager := frida.NewManager()
+	manager := frida.NewDeviceManager()
 	devices, err := manager.EnumerateDevices()
 	if err != nil {
 		panic(err)
@@ -16,9 +16,13 @@ func main() {
 	fmt.Printf("[*] Frida version: %s\n", frida.Version())
 	fmt.Println("[*] Devices: ")
 	for _, device := range devices {
-		fmt.Printf("[*] Params for: %s (%s)\n", device.Name(), device.ID())
-		if device.ID() != "socket" {
-			for k, v := range device.Params() {
+		fmt.Printf("[*] Params for: %s (%s)\n", device.GetName(), device.GetID())
+		if device.GetID() != "socket" {
+			params, err := device.Params()
+			if err != nil {
+				panic(err)
+			}
+			for k, v := range params {
 				fmt.Printf("\t%s => %v\n", k, v)
 			}
 		}

@@ -24,13 +24,13 @@ rpc.exports = {
 func main() {
 	d := frida.GetLocalDevice()
 
-	id, err := d.InjectLibrary("Telegram", "./lib.dylib", "new_one", "erhad")
+	id, err := d.InjectLibraryFile("Telegram", "./lib.dylib", "new_one", "erhad")
 	if err != nil {
 		panic(err)
 	}
 	_ = id
 
-	sess, err := d.Attach("Telegram")
+	sess, err := d.Attach("Telegram", nil)
 	if err != nil {
 		panic(err)
 	}

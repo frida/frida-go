@@ -7,13 +7,19 @@ import (
 	"unsafe"
 )
 
-/*
-AuthenticationFn is a callback function passed to the endpoint params.
-Function does authentication and in the case the user is authenticated, non-empty string is returned.
-If the user is not authenticated, empty string should be returned
-*/
+// AuthenticationFn is a callback function passed to the endpoint params.
+// Function does authentication and in the case the user is authenticated,
+// non-empty string is returned.
+// If the user is not authenticated, empty string should be returned.
 type AuthenticationFn func(string) string
 
+// EParams represent config needed to setup endpoint parameters that are used to setup Portal.
+// Types of authentication includes:
+//	- no authentication (not providing Token nor AuthenticationCallback)
+//	- static authentication (providing token)
+//	- authentication using callback (providing AuthenticationCallback)
+//
+// If the Token and AuthenticationCallback are passed, static authentication will be used (token based)
 type EParams struct {
 	Address                string
 	Port                   uint16
@@ -24,6 +30,7 @@ type EParams struct {
 	AssetRoot              string
 }
 
+// EndpointParameters represent internal FridaEndpointParameters
 type EndpointParameters struct {
 	params *C.FridaEndpointParameters
 }
@@ -38,6 +45,8 @@ func authenticate(cb unsafe.Pointer, token *C.char) *C.char {
 	return C.CString(ret)
 }
 
+// NewEndpointParameters returns *EndpointParameters needed to setup Portal by using
+// provided EParams object
 func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	if params.Address == "" {
 		return nil, errors.New("You need to provide address")

@@ -5,67 +5,96 @@ import "C"
 import (
 	"errors"
 	"reflect"
+	"sort"
 	"unsafe"
+)
+
+const (
+	defaultProcesstimeout = 10
 )
 
 // Device represents FridaDevice struct from frida-core
 type Device struct {
-	device     *C.FridaDevice
-	attachedTo int
+	device *C.FridaDevice
 }
 
-// Clean will delete
-func (f *Device) Clean() {
-	fridaUnref(unsafe.Pointer(f.device))
+// GetID will return the ID of the device.
+func (d *Device) GetID() string {
+	return C.GoString(C.frida_device_get_id(d.device))
 }
 
-// GetApplicationList will return pointer to FridaApplicationList which holds the list
-// of all the applications installed and can be enumerated with EnumerateApplications.
-func (f *Device) ApplicationList(scope Scope) (*ApplicationList, error) {
-	var err *C.GError
-	sc := C.FridaScope(scope)
-
-	queryOpts := C.frida_application_query_options_new()
-	C.frida_application_query_options_set_scope(queryOpts, sc)
-
-	appList := C.frida_device_enumerate_applications_sync(f.device, queryOpts, nil, &err)
-	if err != nil {
-		return nil, &FridaError{err}
-	}
-	return &ApplicationList{appList}, nil
+// GetName will return the name of the device.
+func (d *Device) GetName() string {
+	return C.GoString(C.frida_device_get_name(d.device))
 }
 
-// GetDeviceIcon will return the device icon by calling frida_device_get_icon(FridaDevice*) function.
-func (f *Device) DeviceIcon() *C.GVariant {
+// GetDeviceIcon will return the device icon.
+func (d *Device) GetDeviceIcon() *C.GVariant {
 	var icon *C.GVariant
-	icon = C.frida_device_get_icon(f.device)
-	/*var res *C.char
-	C.iter_array(icon, unsafe.Pointer(res))*/
+	icon = C.frida_device_get_icon(d.device)
 	dt := gPointerToGo((C.gpointer)(icon))
 	_ = dt
 	return icon
 }
 
-func (f *Device) DeviceType() DeviceType {
-	fdt := C.frida_device_get_dtype(f.device)
-	return DeviceType(int(fdt))
+// GetDeviceType returns type of the device.
+func (d *Device) GetDeviceType() DeviceType {
+	fdt := C.frida_device_get_dtype(d.device)
+	return DeviceType(fdt)
+}
+
+// GetBus returns device bus.
+func (d *Device) GetBus() *Bus {
+	bus := C.frida_device_get_bus(d.device)
+	return &Bus{
+		bus: bus,
+	}
+}
+
+// GetManager returns device manager for the device.
+func (d *Device) GetManager() *DeviceManager {
+	mgr := C.frida_device_get_manager(d.device)
+	return &DeviceManager{mgr}
+}
+
+// IsLost returns boolean whether device is lost or not.
+func (d *Device) IsLost() bool {
+	lost := C.frida_device_is_lost(d.device)
+	if int(lost) == 1 {
+		return true
+	}
+	return false
+}
+
+// Params returns system parameters of the device
+func (d *Device) Params() (map[string]interface{}, error) {
+	var err *C.GError
+	ht := C.frida_device_query_system_parameters_sync(d.device, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	params := gHashTableToMap(ht)
+
+	return params, nil
 }
 
 // GetFrontMostApplication will return the frontmost application or the application in focus
 // on the device.
-func (f *Device) FrontMostApplication(scope Scope) (*Application, error) {
+func (d *Device) FrontMostApplication(scope Scope) (*Application, error) {
 	var err *C.GError
 	app := &Application{}
 
 	sc := C.FridaScope(scope)
 	queryOpts := C.frida_frontmost_query_options_new()
 	C.frida_frontmost_query_options_set_scope(queryOpts, sc)
-	app.application = C.frida_device_get_frontmost_application_sync(f.device, queryOpts, nil, &err)
+	app.application = C.frida_device_get_frontmost_application_sync(d.device,
+		queryOpts,
+		nil,
+		&err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
-
-	app.getParams()
 
 	if app.application == nil {
 		return nil, errors.New("Could not obtain frontmost application! Is any application started?")
@@ -74,104 +103,166 @@ func (f *Device) FrontMostApplication(scope Scope) (*Application, error) {
 	return app, nil
 }
 
-// GetID will return the ID of the current device.
-func (f *Device) ID() string {
-	return C.GoString(C.frida_device_get_id(f.device))
-}
+// EnumerateApplications will return slice of applications on the device
+func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Application, error) {
+	queryOpts := C.frida_application_query_options_new()
+	C.frida_application_query_options_set_scope(queryOpts, C.FridaScope(scope))
 
-// GetName will return the name of the current device.
-func (f *Device) Name() string {
-	return C.GoString(C.frida_device_get_name(f.device))
-}
-
-func (f *Device) Params() map[string]interface{} {
-	var err *C.GError
-	ht := C.frida_device_query_system_parameters_sync(f.device, nil, &err)
-	if err != nil {
-		panic(err)
+	if identifier != "" {
+		identifierC := C.CString(identifier)
+		defer C.free(unsafe.Pointer(identifierC))
+		C.frida_application_query_options_select_identifier(queryOpts, identifierC)
 	}
 
-	params := gHashTableToMap(ht)
-
-	return params
-}
-
-// GetProcessList will return pointer to FridaProcessList
-func (f *Device) Processes() (*ProcessList, error) {
-	procs := &ProcessList{}
 	var err *C.GError
-	procList := C.frida_device_enumerate_processes_sync(f.device, nil, nil, &err)
+	appList := C.frida_device_enumerate_applications_sync(d.device, queryOpts, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
-	procLength := int(C.frida_process_list_size(procList))
 
-	for i := 0; i < procLength; i++ {
-		proc := C.frida_process_list_get(procList, C.gint(i))
-		procs.processes = append(procs.processes, Process{proc})
+	var apps []*Application
+
+	for i := 0; i < int(C.frida_application_list_size(appList)); i++ {
+		app := C.frida_application_list_get(appList, C.gint(i))
+		apps = append(apps, &Application{app})
 	}
 
-	procs.pList = procList
+	sort.Slice(apps, func(i, j int) bool {
+		return apps[i].GetPid() > apps[j].GetPid()
+	})
+
+	return apps, nil
+}
+
+// GetProcessByPid returns the process by passed pid.
+func (d *Device) GetProcessByPid(pid int, scope Scope) (*Process, error) {
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+
+	var err *C.GError
+	proc := C.frida_device_get_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &Process{proc}, nil
+}
+
+// GetProcessByName returns the process by passed name.
+func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
+	nameC := C.CString(name)
+	defer objectFree(unsafe.Pointer(nameC))
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+
+	var err *C.GError
+	proc := C.frida_device_get_process_by_name_sync(d.device, nameC, opts, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &Process{proc}, nil
+}
+
+// FindDeviceById will try to find the process with given pid.
+func (d *Device) FindProcessByPid(pid int, scope Scope) (*Process, error) {
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+
+	var err *C.GError
+	proc := C.frida_device_find_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &Process{proc}, nil
+}
+
+// FindProcessByName will try to find the process with name specified.
+func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
+	nameC := C.CString(name)
+	defer objectFree(unsafe.Pointer(nameC))
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+
+	var err *C.GError
+	proc := C.frida_device_find_process_by_name_sync(d.device, nameC, opts, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &Process{proc}, nil
+}
+
+// EnumerateProcesses will slice of processes running
+func (d *Device) EnumerateProcesses() ([]*Process, error) {
+	var err *C.GError
+	procList := C.frida_device_enumerate_processes_sync(d.device, nil, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	var procs []*Process
+
+	for i := 0; i < int(C.frida_process_list_size(procList)); i++ {
+		proc := C.frida_process_list_get(procList, C.gint(i))
+		procs = append(procs, &Process{proc})
+	}
+
 	return procs, nil
 }
 
-// GetProcessByPid returns the process by passed int
-func (f *Device) ProcessByPid(pid int) (*Process, error) {
+// EnableSpawnGating will enable spawn gating on the device.
+func (d *Device) EnableSpawnGating() error {
 	var err *C.GError
-	nPid := C.guint(pid)
-	proc := C.frida_device_get_process_by_pid_sync(f.device, nPid, nil, nil, &err)
-	if err != nil {
-		return nil, &FridaError{err}
-	}
-	return &Process{proc}, nil
-}
-
-// GetProcessByName returns the process by passed name
-func (f *Device) ProcessByName(name string) (*Process, error) {
-	var err *C.GError
-	nName := C.CString(name)
-	defer objectFree(unsafe.Pointer(nName))
-	proc := C.frida_device_get_process_by_name_sync(f.device, nName, nil, nil, &err)
-	if err != nil {
-		return nil, &FridaError{err}
-	}
-	return &Process{proc}, nil
-}
-
-func (f *Device) EnableSpawnGating() error {
-	var err *C.GError
-	C.frida_device_enable_spawn_gating_sync(f.device, nil, &err)
+	C.frida_device_enable_spawn_gating_sync(d.device, nil, &err)
 	if err != nil {
 		return &FridaError{err}
 	}
 	return nil
 }
 
-func (f *Device) DisableSpawnGating() error {
-	/*
-		void frida_device_disable_spawn_gating_sync
-		(FridaDevice * self, GCancellable * cancellable,
-			GError ** error);
-	*/
+// DisableSpawnGating will disable spawn gating on the device.
+func (d *Device) DisableSpawnGating() error {
 	var err *C.GError
-	C.frida_device_disable_spawn_gating_sync(f.device, nil, &err)
+	C.frida_device_disable_spawn_gating_sync(d.device, nil, &err)
 	if err != nil {
 		return &FridaError{err}
 	}
 	return nil
 }
 
-func (f *Device) EnumeratePendingChildren() ([]*Child, error) {
+// EnumeratePendingSpawn will return the slice of pending spawns.
+func (d *Device) EnumeratePendingSpawn() ([]*Spawn, error) {
 	var err *C.GError
-	childList := C.frida_device_enumerate_pending_children_sync(f.device, nil, &err)
+	spawnList := C.frida_device_enumerate_pending_spawn_sync(d.device, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	var spawns []*Spawn
+
+	for i := 0; i < int(C.frida_spawn_list_size(spawnList)); i++ {
+		spawn := C.frida_spawn_list_get(spawnList, C.gint(i))
+		spawns = append(spawns, &Spawn{spawn})
+	}
+
+	return spawns, nil
+}
+
+// EnumeratePendingChildren will return the slice of pending children.
+func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
+	var err *C.GError
+	childList := C.frida_device_enumerate_pending_children_sync(d.device, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
 
 	var childs []*Child
-	sz := C.frida_child_list_size(childList)
 
-	for i := 0; i < int(sz); i++ {
+	for i := 0; i < int(C.frida_child_list_size(childList)); i++ {
 		chld := C.frida_child_list_get(childList, C.gint(i))
 		c := &Child{
 			child: chld,
@@ -182,10 +273,10 @@ func (f *Device) EnumeratePendingChildren() ([]*Child, error) {
 	return childs, nil
 }
 
-// Spawn will spawn an application or binary and call Attach afterwards
-func (f *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
+// Spawn will spawn an application or binary.
+func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 	var err *C.GError
-	pid := C.frida_device_spawn_sync(f.device, C.CString(name), opts.opts, nil, &err)
+	pid := C.frida_device_spawn_sync(d.device, C.CString(name), opts.opts, nil, &err)
 	if err != nil {
 		return -1, &FridaError{err}
 	}
@@ -193,22 +284,47 @@ func (f *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 	return int(pid), nil
 }
 
-// Resume will resume the application using frida_device_resume_sync
-func (f *Device) Resume(pid int) error {
+// Input inputs []bytes into the process with pid specified.
+func (d *Device) Input(pid int, data []byte) error {
+	arr, len := uint8ArrayFromByteSlice(data)
+	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+
 	var err *C.GError
-	C.frida_device_resume_sync(f.device, C.guint(pid), nil, &err)
+	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
 	if err != nil {
 		return &FridaError{err}
 	}
 	return nil
 }
 
-// Attach will attach on specified process name or PID
-func (f *Device) Attach(val interface{}) (*Session, error) {
+// Resume will resume the process with pid.
+func (d *Device) Resume(pid int) error {
+	var err *C.GError
+	C.frida_device_resume_sync(d.device, C.guint(pid), nil, &err)
+	if err != nil {
+		return &FridaError{err}
+	}
+	return nil
+}
+
+// Kill kills process with pid specified.
+func (d *Device) Kill(pid int) error {
+	var err *C.GError
+	C.frida_device_kill_sync(d.device, C.guint(pid), nil, &err)
+	if err != nil {
+		return &FridaError{err}
+	}
+	return nil
+}
+
+// Attach will attach on specified process name or PID.
+// You can pass the nil as SessionOptions or you can create it if you want
+// the session to persist for specific timeout.
+func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error) {
 	var pid int
 	switch v := reflect.ValueOf(val); v.Kind() {
 	case reflect.String:
-		proc, err := f.ProcessByName(val.(string))
+		proc, err := d.GetProcessByName(val.(string), SCOPE_MINIMAL)
 		if err != nil {
 			return nil, err
 		}
@@ -219,31 +335,27 @@ func (f *Device) Attach(val interface{}) (*Session, error) {
 		return nil, errors.New("Expected name of app/process or PID")
 	}
 
+	var opt *C.FridaSessionOptions = nil
+	if opts != nil {
+		opt = opts.opts
+	}
+
 	var err *C.GError
-	s := C.frida_device_attach_sync(f.device, C.guint(pid), nil, nil, &err)
+	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
-	f.attachedTo = pid
 	return &Session{s}, nil
 }
 
-func (f *Device) Bus() *Bus {
-	bus := C.frida_device_get_bus(f.device)
-	return &Bus{
-		bus: bus,
-	}
-}
-
-func (f *Device) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(f.device), sigName, fn)
-}
-
-func (f *Device) InjectLibrary(target interface{}, path, entrypoint, data string) (uint, error) {
+// InjectLibraryFile will inject the library in the target with path to library specified.
+// Entrypoint is the entrypoint to the library and the data is any data you need to pass
+// to the library.
+func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data string) (uint, error) {
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
-		proc, err := f.ProcessByName(target.(string))
+		proc, err := d.GetProcessByName(target.(string), SCOPE_MINIMAL)
 		if err != nil {
 			return 0, err
 		}
@@ -255,7 +367,7 @@ func (f *Device) InjectLibrary(target interface{}, path, entrypoint, data string
 	}
 
 	if path == "" {
-		return 0, errors.New("You need to provide path to cmodule")
+		return 0, errors.New("You need to provide path to library")
 	}
 
 	var pathC *C.char
@@ -276,7 +388,7 @@ func (f *Device) InjectLibrary(target interface{}, path, entrypoint, data string
 	}
 
 	var err *C.GError
-	id := C.frida_device_inject_library_file_sync(f.device,
+	id := C.frida_device_inject_library_file_sync(d.device,
 		C.guint(pid),
 		pathC,
 		entrypointC,
@@ -288,4 +400,73 @@ func (f *Device) InjectLibrary(target interface{}, path, entrypoint, data string
 	}
 
 	return uint(id), nil
+}
+
+// InjectLibraryBlob will inject the library in the target with byteData path.
+// Entrypoint is the entrypoint to the library and the data is any data you need to pass
+// to the library.
+func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoint, data string) (uint, error) {
+	var pid int
+	switch v := reflect.ValueOf(target); v.Kind() {
+	case reflect.String:
+		proc, err := d.GetProcessByName(target.(string), SCOPE_MINIMAL)
+		if err != nil {
+			return 0, err
+		}
+		pid = proc.GetPid()
+	case reflect.Int:
+		pid = target.(int)
+	default:
+		return 0, errors.New("Expected name of app/process or PID")
+	}
+
+	if len(byteData) == 0 {
+		return 0, errors.New("You need to provide byteData")
+	}
+
+	var entrypointC *C.char = nil
+	var dataC *C.char = nil
+
+	if entrypoint != "" {
+		entrypointC = C.CString(entrypoint)
+		defer C.free(unsafe.Pointer(entrypointC))
+	}
+
+	if data != "" {
+		dataC = C.CString(data)
+		defer C.free(unsafe.Pointer(dataC))
+	}
+
+	arr, len := uint8ArrayFromByteSlice(byteData)
+	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+
+	var err *C.GError
+	id := C.frida_device_inject_library_blob_sync(d.device,
+		C.guint(pid),
+		gBytesData,
+		entrypointC,
+		dataC,
+		nil,
+		&err)
+	if err != nil {
+		return 0, &FridaError{err}
+	}
+
+	return uint(id), nil
+}
+
+func (d *Device) OpenChannel(address string) (*GIOStream, error) {
+	addressC := C.CString(address)
+	defer C.free(unsafe.Pointer(addressC))
+
+	var err *C.GError
+	stream := C.frida_device_open_channel_sync(d.device, addressC, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &GIOStream{stream}, nil
+}
+
+func (d *Device) On(sigName string, fn interface{}) {
+	connectClosure(unsafe.Pointer(d.device), sigName, fn)
 }

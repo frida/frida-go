@@ -2,46 +2,71 @@ package frida
 
 import "fmt"
 
-// FridaDeviceType is equal to enum FridaDeviceType from frida-core
 type DeviceType int
 
 const (
-	FRIDA_DEVICE_TYPE_LOCAL  DeviceType = iota // Corresponds to FRIDA_DEVICE_TYPE_LOCAL
-	FRIDA_DEVICE_TYPE_REMOTE                   // Corresponds to FRIDA_DEVICE_TYPE_REMOTE
-	FRIDA_DEVICE_TYPE_USB                      // Corresponds to FRIDA_DEVICE_TYPE_USB
+	DEVICE_TYPE_LOCAL DeviceType = iota
+	DEVICE_TYPE_REMOTE
+	DEVICE_TYPE_USB
 )
 
-// FridaRealm is equal to enum FridaRealm from frida-core
+func (d DeviceType) String() string {
+	return [...]string{"local",
+		"remote",
+		"usb"}[d]
+}
+
 type Realm int
 
 const (
-	FRIDA_REALM_NATIVE   Realm = iota // Native device
-	FRIDA_REALM_EMULATED              // Emulated device
+	REALM_NATIVE Realm = iota
+	REALM_EMULATED
 )
 
-// FridaScriptRuntime is equal to enum FridaScriptRuntime from frida-core
+func (r Realm) String() string {
+	return [...]string{"native",
+		"emulated"}[r]
+}
+
 type ScriptRuntime int
 
 const (
-	FRIDA_SCRIPT_RUNTIME_DEFAULT ScriptRuntime = iota // Default frida script runtime
-	FRIDA_SCRIPT_RUNTIME_QJS                          // QuickJS
-	FRIDA_SCRIPT_RUNTIME_V8                           // V8
+	SCRIPT_RUNTIME_DEFAULT ScriptRuntime = iota
+	SCRIPT_RUNTIME_QJS
+	SCRIPT_RUNTIME_V8
 )
+
+func (s ScriptRuntime) String() string {
+	return [...]string{"default",
+		"qjs",
+		"v8"}[s]
+}
 
 type Scope int
 
 const (
-	FRIDA_SCOPE_MINIMAL Scope = iota
-	FRIDA_SCOPE_METADATA
-	FRIDA_SCOPE_FULL
+	SCOPE_MINIMAL Scope = iota
+	SCOPE_METADATA
+	SCOPE_FULL
 )
+
+func (s Scope) String() string {
+	return [...]string{"minimal",
+		"metadata",
+		"full"}[s]
+}
 
 type Stdio int
 
 const (
-	FRIDA_STDIO_INHERIT Stdio = iota
-	FRIDA_STDIO_PIPE
+	STDIO_INHERIT Stdio = iota
+	STDIO_PIPE
 )
+
+func (s Stdio) String() string {
+	return [...]string{"inherit",
+		"pipe"}[s]
+}
 
 type Runtime int
 
@@ -51,30 +76,48 @@ const (
 	RUNTIME_V8
 )
 
+func (r Runtime) String() string {
+	return [...]string{"default",
+		"qjs",
+		"v8"}[r]
+}
+
 type ChildOrigin int
 
 const (
-	FRIDA_CHILD_ORIGIN_FORK ChildOrigin = iota
-	FRIDA_CHILD_ORIGIN_EXEC
-	FRIDA_CHILD_ORIGIN_SPAWN
+	CHILD_ORIGIN_FORK ChildOrigin = iota
+	CHILD_ORIGIN_EXEC
+	CHILD_ORIGIN_SPAWN
 )
+
+func (origin ChildOrigin) String() string {
+	return [...]string{"fork",
+		"exec",
+		"spawn"}[origin]
+}
 
 type RelayKind int
 
 const (
-	FRIDA_RELAY_KIND_TURN_UDP RelayKind = iota
-	FRIDA_RELAY_KIND_TURN_TCP
-	FRIDA_RELAY_KIND_TURN_TLS
+	RELAY_KIND_TURN_UDP RelayKind = iota
+	RELAY_KIND_TURN_TCP
+	RELAY_KIND_TURN_TLS
 )
+
+func (kind RelayKind) String() string {
+	return [...]string{"turn-udp",
+		"turn-tcp",
+		"turn-tls"}[kind]
+}
 
 type SessionDetachReason int
 
 const (
-	FRIDA_SESSION_DETACH_REASON_APPLICATION_REQUESTED SessionDetachReason = iota + 1
-	FRIDA_SESSION_DETACH_REASON_PROCESS_REPLACED
-	FRIDA_SESSION_DETACH_REASON_PROCESS_TERMINATED
-	FRIDA_SESSION_DETACH_REASON_SERVER_TERMINATED
-	FRIDA_SESSION_DETACH_REASON_DEVICE_LOST
+	SESSION_DETACH_REASON_APPLICATION_REQUESTED SessionDetachReason = iota + 1
+	SESSION_DETACH_REASON_PROCESS_REPLACED
+	SESSION_DETACH_REASON_PROCESS_TERMINATED
+	SESSION_DETACH_REASON_SERVER_TERMINATED
+	SESSION_DETACH_REASON_DEVICE_LOST
 )
 
 func (reason SessionDetachReason) String() string {
@@ -86,11 +129,13 @@ func (reason SessionDetachReason) String() string {
 		"device-list"}[reason]
 }
 
+// Address represents structure returned by some specific signals
 type Address struct {
 	Addr string
 	Port uint16
 }
 
+// String representation of Address in format ADDR:PORT
 func (a *Address) String() string {
 	return fmt.Sprintf("%s:%d", a.Addr, a.Port)
 }

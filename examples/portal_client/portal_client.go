@@ -16,7 +16,7 @@ type cmd struct {
 }
 
 func main() {
-	mgr := frida.NewManager()
+	mgr := frida.NewDeviceManager()
 
 	ropts := frida.NewRemoteDeviceOptions()
 	ropts.SetOrigin("*")
@@ -27,16 +27,16 @@ func main() {
 		panic(err)
 	}
 
-	procs, err := dev.Processes()
+	procs, err := dev.EnumerateProcesses()
 	if err != nil {
 		panic(err)
 	}
 
-	for _, proc := range procs.EnumerateProcesses() {
+	for _, proc := range procs {
 		fmt.Printf("[*] Process: %s => %d\n", proc.GetName(), proc.GetPid())
 	}
 
-	bus := dev.Bus()
+	bus := dev.GetBus()
 	bus.On("message", func(msg string) {
 		var c cmd
 		json.Unmarshal([]byte(msg), &c)

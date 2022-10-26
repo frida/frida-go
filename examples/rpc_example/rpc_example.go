@@ -24,7 +24,7 @@ rpc.exports = {
 func main() {
 	d := frida.GetLocalDevice()
 
-	sess, err := d.Attach("Telegram")
+	sess, err := d.Attach("Telegram", nil)
 	if err != nil {
 		panic(err)
 	}

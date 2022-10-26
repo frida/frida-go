@@ -35,7 +35,7 @@ func Version() string {
 func getDeviceManager() *DeviceManager {
 	v, ok := data.Load("mgr")
 	if !ok {
-		mgr := NewManager()
+		mgr := NewDeviceManager()
 		data.Store("mgr", mgr)
 		return mgr
 	}
@@ -46,7 +46,7 @@ func GetLocalDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
 	if !ok {
-		dev, _ := mgr.GetDeviceByType(FRIDA_DEVICE_TYPE_LOCAL)
+		dev, _ := mgr.GetDeviceByType(DEVICE_TYPE_LOCAL)
 		data.Store("localDevice", dev)
 		return dev
 	}
@@ -62,7 +62,7 @@ func GetUSBDevice() *Device {
 			mgr.EnumerateDevices()
 			data.Store("enumeratedDevices", true)
 		}
-		dev, err := mgr.GetDeviceByType(FRIDA_DEVICE_TYPE_USB)
+		dev, err := mgr.GetDeviceByType(DEVICE_TYPE_USB)
 		if err != nil {
 			return nil
 		}
@@ -74,5 +74,5 @@ func GetUSBDevice() *Device {
 
 func Attach(val interface{}) (*Session, error) {
 	dev := GetLocalDevice()
-	return dev.Attach(val)
+	return dev.Attach(val, nil)
 }
