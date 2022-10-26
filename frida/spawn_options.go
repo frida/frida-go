@@ -37,7 +37,7 @@ func (f *SpawnOptions) SetEnvp(envp map[string]string) {
 	var s []string
 
 	for k, v := range envp {
-		s = append(s, fmt.Sprintf("%s=%s"), k, v)
+		s = append(s, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	arr, len := stringSliceToCharArr(s)
@@ -57,7 +57,7 @@ func (f *SpawnOptions) SetEnv(env map[string]string) {
 	var s []string
 
 	for k, v := range env {
-		s = append(s, fmt.Sprintf("%s=%s"), k, v)
+		s = append(s, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	arr, len := stringSliceToCharArr(s)
