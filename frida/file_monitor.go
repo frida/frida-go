@@ -9,7 +9,7 @@ type FileMonitor struct {
 	fm *C.FridaFileMonitor
 }
 
-func NewFridaFileMonitor(path string) *FileMonitor {
+func NewFileMonitor(path string) *FileMonitor {
 	pathC := C.CString(path)
 	defer C.free(unsafe.Pointer(pathC))
 
