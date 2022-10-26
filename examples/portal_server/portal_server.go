@@ -52,7 +52,7 @@ func main() {
 		Port:    27052,
 		Token:   "staticToken",
 		AuthenticationCallback: func(token string) string {
-			if token == "erhad" {
+			if token == "secret_token" {
 				return "thisIsSupposedToBeSomeRandomToken"
 			}
 			return ""
@@ -68,7 +68,7 @@ func main() {
 		Port:    27042,
 		Token:   "staticToken",
 		AuthenticationCallback: func(token string) string {
-			if token == "erhad" {
+			if token == "secret_token" {
 				return "thisIsSupposedToBeSomeRandomToken"
 			}
 			return ""
