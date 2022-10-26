@@ -31,7 +31,9 @@ func (f *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (
 	if err != nil {
 		return nil, &FridaError{err}
 	}
-	return &Script{cScript}, nil
+	return &Script{
+		sc: cScript,
+	}, nil
 }
 
 func (f *Session) On(sigName string, fn interface{}) {
