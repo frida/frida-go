@@ -55,18 +55,3 @@ func (p *PeerOptions) GetStunServer() string {
 func (p *PeerOptions) ClearRelays() {
 	C.frida_peer_options_clear_relays(p.opts)
 }
-
-//export goEnumRelays
-func goEnumRelays(data, userData unsafe.Pointer) {
-	ptrData := (C.gpointer)(data)
-	obj := (*C.FridaRelay)(ptrData)
-	r := &Relay{obj}
-	fn := (*func(relay *Relay))(userData)
-	(*fn)(r)
-}
-
-type EnumerateRelaysFunc func(relay *Relay)
-
-func (p *PeerOptions) EnumerateRelays(fn EnumerateRelaysFunc) {
-	C.call_enumerate(p.opts, unsafe.Pointer(&fn))
-}
