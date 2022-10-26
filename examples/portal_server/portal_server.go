@@ -50,8 +50,13 @@ func main() {
 	cluster, err := frida.NewEndpointParameters(&frida.EParams{
 		Address: "0.0.0.0",
 		Port:    27052,
-		Token:   "erhad",
-		Origin:  "*",
+		Token:   "staticToken",
+		AuthenticationCallback: func(token string) string {
+			if token == "erhad" {
+				return "thisIsSupposedToBeSomeRandomToken"
+			}
+			return ""
+		},
 	})
 
 	if err != nil {
@@ -61,8 +66,13 @@ func main() {
 	control, err := frida.NewEndpointParameters(&frida.EParams{
 		Address: "0.0.0.0",
 		Port:    27042,
-		Token:   "erhad",
-		Origin:  "*",
+		Token:   "staticToken",
+		AuthenticationCallback: func(token string) string {
+			if token == "erhad" {
+				return "thisIsSupposedToBeSomeRandomToken"
+			}
+			return ""
+		},
 	})
 
 	portal := frida.NewPortal(cluster, control)
