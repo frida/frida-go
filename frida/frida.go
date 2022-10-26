@@ -1,12 +1,12 @@
-//Package frida provides golang binding for frida.
+// Package frida provides golang binding for frida.
 package frida
 
 /*
 #cgo LDFLAGS: -lfrida-core -lm -ldl -lpthread -lresolv
+#cgo CFLAGS: -I/usr/local/include/ -w
+#cgo pkg-config: glib-2.0
 #cgo darwin LDFLAGS: -lbsm -framework Foundation -framework AppKit
 #cgo linux LDFLAGS: -lrt
-#cgo pkg-config: glib-2.0
-#cgo CFLAGS: -I/usr/local/include/
 #cgo linux CFLAGS: -pthread
 #include <frida-core.h>
 */
@@ -15,15 +15,7 @@ import (
 	"sync"
 )
 
-var loop *C.GMainLoop
-
 var data = &sync.Map{}
-
-// Init function will initalize frida by calling frida_init and initialize main loop
-func init() {
-	C.frida_init()
-	loop = C.g_main_loop_new(nil, 0)
-}
 
 // Shutdown function shuts down frida
 func Shutdown() {
