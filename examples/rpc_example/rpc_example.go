@@ -41,7 +41,7 @@ func main() {
 	script.Load()
 
 	addRes := script.ExportsCall("add", "1", "2")
-	helloRes := script.ExportsCall("hello", "erhad")
+	helloRes := script.ExportsCall("hello", "tkn")
 
 	fmt.Println("Result for rpc add:", addRes)
 	fmt.Println("Result for rpc hello:", helloRes)
