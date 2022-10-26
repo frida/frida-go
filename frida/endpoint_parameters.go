@@ -1,53 +1,77 @@
 package frida
 
-//#include <frida-core.h>
+//#include "authentication-service.h"
 import "C"
-import "unsafe"
+import (
+	"errors"
+	"unsafe"
+)
 
-/*FridaEndpointParameters * frida_endpoint_parameters_new
-(const gchar * address,
-	guint16 port,
-	GTlsCertificate * certificate,
-	const gchar * origin,
-	FridaAuthenticationService * auth_service,
-	GFile * asset_root);
-
+/*
+AuthenticationFn is a callback function passed to the endpoint params.
+Function does authentication and in the case the user is authenticated, non-empty string is returned.
+If the user is not authenticated, empty string should be returned
 */
+type AuthenticationFn func(string) string
 
 type EParams struct {
-	Address     string
-	Port        uint16
-	Certificate string
-	Origin      string
-	Token       string
-	AssetRoot   string
+	Address                string
+	Port                   uint16
+	Certificate            string
+	Origin                 string
+	Token                  string
+	AuthenticationCallback AuthenticationFn
+	AssetRoot              string
 }
 
 type EndpointParameters struct {
 	params *C.FridaEndpointParameters
 }
 
+//export authenticate
+func authenticate(cb unsafe.Pointer, token *C.char) *C.char {
+	fn := (*func(string) string)(cb)
+	ret := (*fn)(C.GoString(token))
+	if ret == "" {
+		return nil
+	}
+	return C.CString(ret)
+}
+
 func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
-	tkn := C.CString(params.Token)
-	defer C.free(unsafe.Pointer(tkn))
+	if params.Address == "" {
+		return nil, errors.New("You need to provide address")
+	}
 
-	addr := C.CString(params.Address)
-	defer C.free(unsafe.Pointer(addr))
+	addrC := C.CString(params.Address)
+	defer C.free(unsafe.Pointer(addrC))
 
-	origin := C.CString(params.Origin)
-	defer C.free(unsafe.Pointer(origin))
+	var tknC *C.char = nil
+	var originC *C.char = nil
+	var auth_service *C.FridaAuthenticationService = nil
+
+	if params.Token != "" {
+		tknC = C.CString(params.Token)
+		defer C.free(unsafe.Pointer(tknC))
+
+		auth_service = (*C.FridaAuthenticationService)(C.frida_static_authentication_service_new(tknC))
+	} else if params.AuthenticationCallback != nil {
+		auth_service = (*C.FridaAuthenticationService)(C.frida_go_authentication_service_new(unsafe.Pointer(&params.AuthenticationCallback)))
+	}
+
+	if params.Origin != "" {
+		originC = C.CString(params.Origin)
+		defer C.free(unsafe.Pointer(originC))
+	}
 
 	cert, _ := gTlsCertificateFromFile(params.Certificate)
 	_ = cert
-
-	auth := C.frida_static_authentication_service_new(tkn)
-
 	ret := C.frida_endpoint_parameters_new(
-		addr,
+		addrC,
 		C.guint16(params.Port),
 		nil,
-		nil,
-		(*C.FridaAuthenticationService)(auth),
+		originC,
+		auth_service,
 		nil,
 	)
 
