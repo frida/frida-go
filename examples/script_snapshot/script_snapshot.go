@@ -32,14 +32,14 @@ func main() {
 	}
 
 	snapshot, err := sess.SnapshotScript(embedScript,
-		frida.NewSnapshotOptions(warmupScript, frida.FRIDA_SCRIPT_RUNTIME_V8))
+		frida.NewSnapshotOptions(warmupScript, frida.SCRIPT_RUNTIME_V8))
 	if err != nil {
 		panic(err)
 	}
 
 	scriptOpts := frida.NewScriptOptions("testsc")
 	scriptOpts.SetSnapshot(snapshot)
-	scriptOpts.SetRuntime(frida.FRIDA_SCRIPT_RUNTIME_V8)
+	scriptOpts.SetRuntime(frida.SCRIPT_RUNTIME_V8)
 
 	onMessage := func(msg string) {
 		fmt.Println("Received", msg)

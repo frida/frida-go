@@ -17,7 +17,7 @@ func main() {
 	popts := frida.NewPortalOptions()
 	popts.SetToken(os.Args[1])
 
-	mem, err := session.GetPortalMembership("192.168.0.72", popts)
+	mem, err := session.JoinPortal("192.168.0.72", popts)
 	if err != nil {
 		panic(err)
 	}

@@ -71,7 +71,7 @@ func main() {
 			string(data))
 	})
 
-	fopts := frida.NewFridaSpawnOptions()
+	fopts := frida.NewSpawnOptions()
 	fopts.SetArgv([]string{
 		"/bin/sh",
 		"-c",

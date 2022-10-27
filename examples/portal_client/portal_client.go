@@ -27,7 +27,7 @@ func main() {
 		panic(err)
 	}
 
-	procs, err := dev.EnumerateProcesses()
+	procs, err := dev.EnumerateProcesses(frida.SCOPE_FULL)
 	if err != nil {
 		panic(err)
 	}
