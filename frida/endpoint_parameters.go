@@ -46,7 +46,7 @@ func authenticate(cb unsafe.Pointer, token *C.char) *C.char {
 }
 
 // NewEndpointParameters returns *EndpointParameters needed to setup Portal by using
-// provided EParams object
+// provided EParams object.
 func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	if params.Address == "" {
 		return nil, errors.New("You need to provide address")

@@ -81,7 +81,7 @@ func (d *Device) Params() (map[string]interface{}, error) {
 
 // GetFrontMostApplication will return the frontmost application or the application in focus
 // on the device.
-func (d *Device) FrontMostApplication(scope Scope) (*Application, error) {
+func (d *Device) GetFrontmostApplication(scope Scope) (*Application, error) {
 	var err *C.GError
 	app := &Application{}
 
@@ -196,10 +196,13 @@ func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 	return &Process{proc}, nil
 }
 
-// EnumerateProcesses will slice of processes running
-func (d *Device) EnumerateProcesses() ([]*Process, error) {
+// EnumerateProcesses will slice of processes running with scope provided
+func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
+	opts := C.frida_process_query_options_new()
+	C.frida_process_query_options_set_scope(C.FridaScope(scope))
+
 	var err *C.GError
-	procList := C.frida_device_enumerate_processes_sync(d.device, nil, nil, &err)
+	procList := C.frida_device_enumerate_processes_sync(d.device, opts, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
@@ -275,8 +278,13 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 
 // Spawn will spawn an application or binary.
 func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
+	var opt *C.FridaSpawnOptions = nil
+	if opts != nil {
+		opt = opts.opts
+	}
+
 	var err *C.GError
-	pid := C.frida_device_spawn_sync(d.device, C.CString(name), opts.opts, nil, &err)
+	pid := C.frida_device_spawn_sync(d.device, C.CString(name), opt, nil, &err)
 	if err != nil {
 		return -1, &FridaError{err}
 	}
@@ -455,7 +463,8 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	return uint(id), nil
 }
 
-func (d *Device) OpenChannel(address string) (*GIOStream, error) {
+// OpenChannel open channel with the address and returns the IOStream
+func (d *Device) OpenChannel(address string) (*IOStream, error) {
 	addressC := C.CString(address)
 	defer C.free(unsafe.Pointer(addressC))
 
@@ -464,7 +473,17 @@ func (d *Device) OpenChannel(address string) (*GIOStream, error) {
 	if err != nil {
 		return nil, &FridaError{err}
 	}
-	return &GIOStream{stream}, nil
+	return NewIOStream(stream), nil
+}
+
+// GetHostSession returns device host session.
+func (d *Device) GetHostSession() (*HostSession, error) {
+	var err *C.GError
+	hs := C.frida_device_get_host_session_sync(d.device, nil, &err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+	return &HostSession{hs}, nil
 }
 
 func (d *Device) On(sigName string, fn interface{}) {

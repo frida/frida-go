@@ -5,14 +5,21 @@ package frida
 import "C"
 import "unsafe"
 
+// Bus represent bus used to communicate with the devices.
 type Bus struct {
 	bus *C.FridaBus
 }
 
-func (b *Bus) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(b.bus), sigName, fn)
+// IsDetached returns whether the bus is deteched from the device or not.
+func (b *Bus) IsDetached() bool {
+	dt := C.int(C.frida_bus_is_detached(b.bus))
+	if dt == 1 {
+		return true
+	}
+	return false
 }
 
+// Attach attaches on the device bus.
 func (b *Bus) Attach() error {
 	var err *C.GError
 	C.frida_bus_attach_sync(b.bus, nil, &err)
@@ -22,6 +29,7 @@ func (b *Bus) Attach() error {
 	return nil
 }
 
+// Post send(post) data to the device.
 func (b *Bus) Post(data string) {
 	dataC := C.CString(data)
 	defer C.free(unsafe.Pointer(dataC))
@@ -29,10 +37,6 @@ func (b *Bus) Post(data string) {
 	C.frida_bus_post(b.bus, dataC, nil)
 }
 
-func (b *Bus) IsDetached() bool {
-	dt := C.int(C.frida_bus_is_detached(b.bus))
-	if dt == 1 {
-		return true
-	}
-	return false
+func (b *Bus) On(sigName string, fn interface{}) {
+	connectClosure(unsafe.Pointer(b.bus), sigName, fn)
 }
