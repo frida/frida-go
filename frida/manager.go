@@ -80,7 +80,7 @@ func (d *DeviceManager) GetRemoteDevice() (*Device, error) {
 // GetDevice will return device with id passed or an error if it can't find any.
 func (d *DeviceManager) GetDeviceByID(id string) (*Device, error) {
 	idC := C.CString(id)
-	defer objectFree(unsafe.Pointer(idC))
+	defer C.free(unsafe.Pointer(idC))
 
 	timeout := C.gint(defaultDeviceTimeout)
 

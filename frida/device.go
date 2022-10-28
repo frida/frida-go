@@ -151,7 +151,7 @@ func (d *Device) GetProcessByPid(pid int, scope Scope) (*Process, error) {
 // GetProcessByName returns the process by passed name.
 func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
 	nameC := C.CString(name)
-	defer objectFree(unsafe.Pointer(nameC))
+	defer C.free(unsafe.Pointer(nameC))
 
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
@@ -182,7 +182,7 @@ func (d *Device) FindProcessByPid(pid int, scope Scope) (*Process, error) {
 // FindProcessByName will try to find the process with name specified.
 func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 	nameC := C.CString(name)
-	defer objectFree(unsafe.Pointer(nameC))
+	defer C.free(unsafe.Pointer(nameC))
 
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))

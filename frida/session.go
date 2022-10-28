@@ -103,7 +103,7 @@ func (f *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 // Useful in cases where you previously created the snapshot.
 func (f *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (*Script, error) {
 	sc := C.CString(script)
-	defer objectFree(unsafe.Pointer(sc))
+	defer C.free(unsafe.Pointer(sc))
 
 	if opts == nil {
 		opts = NewScriptOptions("frida-go")

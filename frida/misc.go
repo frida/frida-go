@@ -37,28 +37,8 @@ type FridaError struct {
 }
 
 func (f *FridaError) Error() string {
-	defer errorFree(f.error)
+	defer Clean(unsafe.Pointer(f.error), CleanGError)
 	return fmt.Sprintf("FridaError: %s", C.GoString(f.error.message))
-}
-
-// freeObject will free object by calling free(void*) from stdlib
-func objectFree(obj unsafe.Pointer) {
-	C.free(obj)
-}
-
-// objectUnref will call g_object_unref on obj pointer
-func objectUnref(obj unsafe.Pointer) {
-	C.g_object_unref((C.gpointer)(obj))
-}
-
-// fridaUnref will call frida_unref on obj pointer
-func fridaUnref(obj unsafe.Pointer) {
-	C.frida_unref((C.gpointer)(obj))
-}
-
-// errorFree will call g_error_free on *GError
-func errorFree(err *C.GError) {
-	C.g_error_free(err)
 }
 
 func cArrayToStringSlice(arr **C.char, length C.int) []string {
