@@ -199,7 +199,7 @@ func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 // EnumerateProcesses will slice of processes running with scope provided
 func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 	opts := C.frida_process_query_options_new()
-	C.frida_process_query_options_set_scope(C.FridaScope(scope))
+	C.frida_process_query_options_set_scope(opts, C.FridaScope(scope))
 
 	var err *C.GError
 	procList := C.frida_device_enumerate_processes_sync(d.device, opts, nil, &err)

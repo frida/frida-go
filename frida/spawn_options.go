@@ -111,7 +111,7 @@ func (s *SpawnOptions) SetAux(aux map[string]interface{}) {
 
 // GetAux returns aux of the spawn.
 func (s *SpawnOptions) GetAux() map[string]interface{} {
-	ht := C.frida_spawn_get_aux(s.opts)
+	ht := C.frida_spawn_options_get_aux(s.opts)
 	aux := gHashTableToMap(ht)
 	return aux
 }
