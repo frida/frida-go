@@ -47,7 +47,9 @@ func (p *Portal) Post(connectionId uint, json string, data []byte) {
 	defer C.free(unsafe.Pointer(jsonC))
 
 	arr, len := uint8ArrayFromByteSlice(data)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	C.frida_portal_service_post(p.portal, C.guint(connectionId), jsonC, gBytesData)
 }
@@ -60,7 +62,9 @@ func (p *Portal) Narrowcast(tag, json string, data []byte) {
 	defer C.free(unsafe.Pointer(jsonC))
 
 	arr, len := uint8ArrayFromByteSlice(data)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	C.frida_portal_service_narrowcast(p.portal, tagC, jsonC, gBytesData)
 }
@@ -70,7 +74,9 @@ func (p *Portal) Broadcast(json string, data []byte) {
 	defer C.free(unsafe.Pointer(jsonC))
 
 	arr, len := uint8ArrayFromByteSlice(data)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	C.frida_portal_service_broadcast(p.portal, jsonC, gBytesData)
 }

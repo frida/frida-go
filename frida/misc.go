@@ -47,8 +47,10 @@ func cArrayToStringSlice(arr **C.char, length C.int) []string {
 	for i := 0; i < int(length); i++ {
 		elem := C.get_char_elem(arr, C.int(i))
 		s = append(s, C.GoString(elem))
+		C.free(unsafe.Pointer(elem))
 	}
 
+	C.free(unsafe.Pointer(arr))
 	return s
 }
 

@@ -295,7 +295,9 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 // Input inputs []bytes into the process with pid specified.
 func (d *Device) Input(pid int, data []byte) error {
 	arr, len := uint8ArrayFromByteSlice(data)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	var err *C.GError
 	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
@@ -446,7 +448,9 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	}
 
 	arr, len := uint8ArrayFromByteSlice(byteData)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	var err *C.GError
 	id := C.frida_device_inject_library_blob_sync(d.device,

@@ -73,6 +73,7 @@ func (f *Script) Post(jsonString string, data []byte) {
 	defer C.free(unsafe.Pointer(jsonStringC))
 
 	arr, len := uint8ArrayFromByteSlice(data)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
 	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 

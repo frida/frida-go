@@ -24,7 +24,10 @@ func NewScriptOptions(name string) *ScriptOptions {
 
 func (f *ScriptOptions) SetSnapshot(value []byte) {
 	arr, len := uint8ArrayFromByteSlice(value)
+	defer C.free(unsafe.Pointer(arr))
 	gBytesValue := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesValue), CleanPOD)
+
 	C.frida_script_options_set_snapshot(f.opts, gBytesValue)
 }
 
