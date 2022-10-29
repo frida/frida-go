@@ -37,7 +37,7 @@ type FridaError struct {
 }
 
 func (f *FridaError) Error() string {
-	defer Clean(unsafe.Pointer(f.error), CleanGError)
+	defer clean(unsafe.Pointer(f.error), CleanGError)
 	return fmt.Sprintf("FridaError: %s", C.GoString(f.error.message))
 }
 

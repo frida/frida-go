@@ -74,6 +74,7 @@ func (f *Script) Post(jsonString string, data []byte) {
 
 	arr, len := uint8ArrayFromByteSlice(data)
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
+	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
 
 	C.frida_script_post(f.sc, jsonStringC, gBytesData)
 }
