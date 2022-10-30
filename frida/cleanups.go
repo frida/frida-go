@@ -35,10 +35,8 @@ func unrefFrida(obj unsafe.Pointer) {
 }
 
 func clean(obj unsafe.Pointer, cType CleanupType) {
-	go func() {
-		fn := cleanups[cType]
-		if fn != nil {
-			fn(obj)
-		}
-	}()
+	fn := cleanups[cType]
+	if fn != nil {
+		fn(obj)
+	}
 }
