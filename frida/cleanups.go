@@ -34,7 +34,7 @@ func unrefFrida(obj unsafe.Pointer) {
 	C.frida_unref((C.gpointer)(obj))
 }
 
-func Clean(obj unsafe.Pointer, cType CleanupType) {
+func clean(obj unsafe.Pointer, cType CleanupType) {
 	fn := cleanups[cType]
 	if fn != nil {
 		fn(obj)
