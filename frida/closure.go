@@ -79,7 +79,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 		fnArgs[i] = reflect.ValueOf(goV).Convert(fnType.In(i))
 	}
 
-	go closure.Func.Call(fnArgs)
+	closure.Func.Call(fnArgs)
 }
 
 type funcstack struct {
