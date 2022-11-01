@@ -4,17 +4,13 @@ package frida
 import "C"
 import "unsafe"
 
+// Relay type represents relay for setting up p2p.
 type Relay struct {
 	r *C.FridaRelay
 }
 
+// NewRelay creates the new relay with the credentials provided.
 func NewRelay(address, username, password string, kind RelayKind) *Relay {
-	/*
-		FridaRelay * frida_relay_new (const gchar * address,
-		const gchar * username,
-		const gchar * password,
-		FridaRelayKind kind);
-	*/
 	var addressC *C.char = nil
 	var usernameC *C.char = nil
 	var passwordC *C.char = nil
@@ -45,18 +41,22 @@ func NewRelay(address, username, password string, kind RelayKind) *Relay {
 	return &Relay{rly}
 }
 
+// GetAddress returns the address of the relay.
 func (relay *Relay) GetAddress() string {
 	return C.GoString(C.frida_relay_get_address(relay.r))
 }
 
+// GetUsername returns the username for the relay.
 func (relay *Relay) GetUsername() string {
 	return C.GoString(C.frida_relay_get_username(relay.r))
 }
 
+// GetPassword returns the password for the relay.
 func (relay *Relay) GetPassword() string {
 	return C.GoString(C.frida_relay_get_password(relay.r))
 }
 
+// GetRelayKind returns the kind of relay.
 func (relay *Relay) GetRelayKind() RelayKind {
 	return RelayKind(C.frida_relay_get_kind(relay.r))
 }
