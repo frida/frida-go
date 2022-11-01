@@ -47,7 +47,7 @@ func (s *ScriptOptions) SetSnapshot(value []byte) {
 }
 
 // SetSnapshotTransport sets the transport for the snapshot
-func (s *ScriptOptions) SetSnapshotTransport(tr SnapshotOptions) {
+func (s *ScriptOptions) SetSnapshotTransport(tr SnapshotTransport) {
 	C.frida_script_options_set_snapshot_transport(s.opts,
 		C.FridaSnapshotTransport(tr))
 }
