@@ -76,7 +76,7 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 
 	var cert *C.GTlsCertificate = nil
 	if params.Certificate != "" {
-		crt, err := gTlsCertificateFromFile(params.Certificate)
+		crt, err := gTLSCertificateFromFile(params.Certificate)
 		if err != nil {
 			return nil, err
 		}

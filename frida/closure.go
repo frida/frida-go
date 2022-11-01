@@ -105,11 +105,11 @@ func connectClosure(obj unsafe.Pointer, sigName string, fn interface{}) {
 	defer C.free(unsafe.Pointer(sigC))
 
 	gclosure := newClosureFunc(fs)
-	sigId := C.lookup_signal(obj, sigC)
+	sigID := C.lookup_signal(obj, sigC)
 
 	// Do nothing if signal is 0 meaning not found
-	if int(sigId) != 0 {
-		c := C.g_signal_connect_closure_by_id((C.gpointer)(obj), sigId, 0, gclosure, C.gboolean(1))
+	if int(sigID) != 0 {
+		c := C.g_signal_connect_closure_by_id((C.gpointer)(obj), sigID, 0, gclosure, C.gboolean(1))
 		sigs.Store(gclosure, c)
 	}
 }

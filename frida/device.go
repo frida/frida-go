@@ -27,8 +27,7 @@ func (d *Device) GetName() string {
 
 // GetDeviceIcon will return the device icon.
 func (d *Device) GetDeviceIcon() *C.GVariant {
-	var icon *C.GVariant
-	icon = C.frida_device_get_icon(d.device)
+	icon := C.frida_device_get_icon(d.device)
 	dt := gPointerToGo((C.gpointer)(icon))
 	_ = dt
 	return icon
@@ -57,10 +56,7 @@ func (d *Device) GetManager() *DeviceManager {
 // IsLost returns boolean whether device is lost or not.
 func (d *Device) IsLost() bool {
 	lost := C.frida_device_is_lost(d.device)
-	if int(lost) == 1 {
-		return true
-	}
-	return false
+	return int(lost) == 1
 }
 
 // Params returns system parameters of the device
@@ -94,7 +90,7 @@ func (d *Device) GetFrontmostApplication(scope Scope) (*Application, error) {
 	}
 
 	if app.application == nil {
-		return nil, errors.New("Could not obtain frontmost application! Is any application started?")
+		return nil, errors.New("could not obtain frontmost application! Is any application started?")
 	}
 
 	return app, nil
@@ -162,7 +158,7 @@ func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
 	return &Process{proc}, nil
 }
 
-// FindDeviceById will try to find the process with given pid.
+// FindProcessByPid will try to find the process with given pid.
 func (d *Device) FindProcessByPid(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
@@ -346,7 +342,7 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 	case reflect.Int:
 		pid = val.(int)
 	default:
-		return nil, errors.New("Expected name of app/process or PID")
+		return nil, errors.New("expected name of app/process or PID")
 	}
 
 	var opt *C.FridaSessionOptions = nil
@@ -377,11 +373,11 @@ func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data st
 	case reflect.Int:
 		pid = target.(int)
 	default:
-		return 0, errors.New("Expected name of app/process or PID")
+		return 0, errors.New("expected name of app/process or PID")
 	}
 
 	if path == "" {
-		return 0, errors.New("You need to provide path to library")
+		return 0, errors.New("you need to provide path to library")
 	}
 
 	var pathC *C.char
@@ -431,11 +427,11 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	case reflect.Int:
 		pid = target.(int)
 	default:
-		return 0, errors.New("Expected name of app/process or PID")
+		return 0, errors.New("expected name of app/process or PID")
 	}
 
 	if len(byteData) == 0 {
-		return 0, errors.New("You need to provide byteData")
+		return 0, errors.New("you need to provide byteData")
 	}
 
 	var entrypointC *C.char = nil

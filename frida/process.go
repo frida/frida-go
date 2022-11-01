@@ -3,7 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 
-// FridaProcess represents FridaProcess from frida-core
+// Process represents FridaProcess from frida-core
 type Process struct {
 	proc *C.FridaProcess
 }

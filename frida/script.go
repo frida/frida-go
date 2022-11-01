@@ -24,10 +24,7 @@ type Script struct {
 // IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
 func (f *Script) IsDestroyed() bool {
 	destroyed := C.frida_script_is_destroyed(f.sc)
-	if int(destroyed) == 1 {
-		return true
-	}
-	return false
+	return int(destroyed) == 1
 }
 
 // Load function loads the script into the process.
@@ -100,7 +97,7 @@ func (f *Script) DisableDebugger() error {
 
 // ExportsCall will try to call fn from the rpc.exports with args provided
 func (f *Script) ExportsCall(fn string, args ...interface{}) interface{} {
-	rpcData := newRpcCall(fn)
+	rpcData := newRPCCall(fn)
 
 	var aIface []interface{}
 	aIface = append(aIface, args...)
@@ -127,20 +124,20 @@ func (f *Script) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
 }
 
-func getRpcIdFromMessage(message string) (string, interface{}, error) {
+func getRPCIDFromMessage(message string) (string, interface{}, error) {
 	unmarshalled := make(map[string]interface{})
 	if err := json.Unmarshal([]byte(message), &unmarshalled); err != nil {
 		return "", nil, err
 	}
 
-	var rpcId string
+	var rpcID string
 	var ret interface{}
 
 	loopMap := func(mp map[string]interface{}) {
 		for _, v := range mp {
 			if reflect.ValueOf(v).Kind() == reflect.Slice {
 				slc := v.([]interface{})
-				rpcId = slc[1].(string)
+				rpcID = slc[1].(string)
 				ret = slc[3]
 
 			}
@@ -148,16 +145,16 @@ func getRpcIdFromMessage(message string) (string, interface{}, error) {
 	}
 	loopMap(unmarshalled)
 
-	return rpcId, ret, nil
+	return rpcID, ret, nil
 }
 
 func (f *Script) hijackFn(message string, data []byte) {
 	if strings.Contains(message, "frida:rpc") {
-		rpcId, ret, err := getRpcIdFromMessage(message)
+		rpcID, ret, err := getRPCIDFromMessage(message)
 		if err != nil {
 			panic(err)
 		}
-		callerCh, ok := rpcCalls.Load(rpcId)
+		callerCh, ok := rpcCalls.Load(rpcID)
 		if !ok {
 			panic("rpc-id not found")
 		}
@@ -177,7 +174,7 @@ func (f *Script) hijackFn(message string, data []byte) {
 	}
 }
 
-func newRpcCall(fnName string) []interface{} {
+func newRPCCall(fnName string) []interface{} {
 	id := uuid.New()
 	dt := []interface{}{
 		"frida:rpc",

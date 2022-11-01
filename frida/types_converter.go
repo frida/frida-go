@@ -379,10 +379,7 @@ func stringFromVariant(variant *C.GVariant) string {
 // stringFromVariant extracts string ("s") from GVariant
 func boolFromVariant(variant *C.GVariant) bool {
 	val := C.g_variant_get_boolean(variant)
-	if int(val) == 0 {
-		return false
-	}
-	return true
+	return int(val) != 0
 }
 
 func int64FromVariant(variant *C.GVariant) int64 {

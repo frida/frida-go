@@ -33,10 +33,7 @@ func NewIOStream(stream *C.GIOStream) *IOStream {
 
 func (ios *IOStream) IsClosed() bool {
 	closed := C.g_io_stream_is_closed(ios.stream)
-	if int(closed) == 1 {
-		return true
-	}
-	return false
+	return int(closed) == 1
 }
 
 func (ios *IOStream) Close() error {
@@ -72,9 +69,7 @@ func (ios *IOStream) Read(data *[]byte) (int, error) {
 	}
 
 	dataRead := C.GoBytes(unsafe.Pointer(buf), C.int(read))
-	for i := range dataRead {
-		(*data)[i] = dataRead[i]
-	}
+	copy(*data, dataRead)
 
 	return int(read), nil
 }

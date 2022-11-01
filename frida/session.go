@@ -14,10 +14,7 @@ type Session struct {
 // IsDetached returns bool whether session is detached or not.
 func (s *Session) IsDetached() bool {
 	detached := C.frida_session_is_detached(s.s)
-	if int(detached) == 1 {
-		return true
-	}
-	return false
+	return int(detached) == 1
 }
 
 // Detach detaches the current session.
