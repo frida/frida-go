@@ -2,7 +2,10 @@ package frida
 
 //#include <frida-core.h>
 import "C"
-import "unsafe"
+import (
+	"runtime"
+	"unsafe"
+)
 
 type Portal struct {
 	portal *C.FridaPortalService
@@ -49,9 +52,12 @@ func (p *Portal) Post(connectionId uint, json string, data []byte) {
 	arr, len := uint8ArrayFromByteSlice(data)
 	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	C.frida_portal_service_post(p.portal, C.guint(connectionId), jsonC, gBytesData)
+	runtime.KeepAlive(gBytesData)
 }
 
 func (p *Portal) Narrowcast(tag, json string, data []byte) {
@@ -64,9 +70,12 @@ func (p *Portal) Narrowcast(tag, json string, data []byte) {
 	arr, len := uint8ArrayFromByteSlice(data)
 	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	C.frida_portal_service_narrowcast(p.portal, tagC, jsonC, gBytesData)
+	runtime.KeepAlive(gBytesData)
 }
 
 func (p *Portal) Broadcast(json string, data []byte) {
@@ -76,9 +85,12 @@ func (p *Portal) Broadcast(json string, data []byte) {
 	arr, len := uint8ArrayFromByteSlice(data)
 	defer C.free(unsafe.Pointer(arr))
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	C.frida_portal_service_broadcast(p.portal, jsonC, gBytesData)
+	runtime.KeepAlive(gBytesData)
 }
 
 func (p *Portal) EnumerateTags(connectionId uint) []string {

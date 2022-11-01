@@ -5,9 +5,9 @@ import "fmt"
 type DeviceType int
 
 const (
-	DEVICE_TYPE_LOCAL DeviceType = iota
-	DEVICE_TYPE_REMOTE
-	DEVICE_TYPE_USB
+	DeviceTypeLocal DeviceType = iota
+	DeviceTypeRemote
+	DeviceTypeUsb
 )
 
 func (d DeviceType) String() string {
@@ -19,8 +19,8 @@ func (d DeviceType) String() string {
 type Realm int
 
 const (
-	REALM_NATIVE Realm = iota
-	REALM_EMULATED
+	RealmNative Realm = iota
+	RealmEmulated
 )
 
 func (r Realm) String() string {
@@ -31,9 +31,9 @@ func (r Realm) String() string {
 type ScriptRuntime int
 
 const (
-	SCRIPT_RUNTIME_DEFAULT ScriptRuntime = iota
-	SCRIPT_RUNTIME_QJS
-	SCRIPT_RUNTIME_V8
+	ScriptRuntimeDefault ScriptRuntime = iota
+	ScriptRuntimeQJS
+	ScriptRuntimeV8
 )
 
 func (s ScriptRuntime) String() string {
@@ -59,8 +59,8 @@ func (s Scope) String() string {
 type Stdio int
 
 const (
-	STDIO_INHERIT Stdio = iota
-	STDIO_PIPE
+	StdioInherit Stdio = iota
+	StdioPipe
 )
 
 func (s Stdio) String() string {
@@ -71,9 +71,9 @@ func (s Stdio) String() string {
 type Runtime int
 
 const (
-	RUNTIME_DEFAULT Runtime = iota
-	RUNTIME_QJS
-	RUNTIME_V8
+	RuntimeDefault Runtime = iota
+	RuntimeQJS
+	RuntimeV8
 )
 
 func (r Runtime) String() string {
@@ -85,9 +85,9 @@ func (r Runtime) String() string {
 type ChildOrigin int
 
 const (
-	CHILD_ORIGIN_FORK ChildOrigin = iota
-	CHILD_ORIGIN_EXEC
-	CHILD_ORIGIN_SPAWN
+	ChildOriginFork ChildOrigin = iota
+	ChildOriginExec
+	ChildOriginSpawn
 )
 
 func (origin ChildOrigin) String() string {
@@ -99,9 +99,9 @@ func (origin ChildOrigin) String() string {
 type RelayKind int
 
 const (
-	RELAY_KIND_TURN_UDP RelayKind = iota
-	RELAY_KIND_TURN_TCP
-	RELAY_KIND_TURN_TLS
+	RelayKindTurnUdp RelayKind = iota
+	RelayKindTurnTcp
+	RelayKindTurnTls
 )
 
 func (kind RelayKind) String() string {
@@ -113,11 +113,11 @@ func (kind RelayKind) String() string {
 type SessionDetachReason int
 
 const (
-	SESSION_DETACH_REASON_APPLICATION_REQUESTED SessionDetachReason = iota + 1
-	SESSION_DETACH_REASON_PROCESS_REPLACED
-	SESSION_DETACH_REASON_PROCESS_TERMINATED
-	SESSION_DETACH_REASON_SERVER_TERMINATED
-	SESSION_DETACH_REASON_DEVICE_LOST
+	SessionDetachReasonApplicationRequested SessionDetachReason = iota + 1
+	SessionDetachReasonProcessReplaced
+	SessionDetachReasonProcessTerminated
+	SessionDetachReasonServerTerminated
+	SessionDetachReasonDeviceLost
 )
 
 func (reason SessionDetachReason) String() string {
@@ -128,6 +128,13 @@ func (reason SessionDetachReason) String() string {
 		"server-terminated",
 		"device-list"}[reason]
 }
+
+type SnapshotTransport int
+
+const (
+	SnapshotTransportInline SnapshotTransport = iota
+	SnapshotTransportSharedMemory
+)
 
 // Address represents structure returned by some specific signals
 type Address struct {

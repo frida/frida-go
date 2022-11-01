@@ -22,9 +22,9 @@ func NewSpawnOptions() *SpawnOptions {
 
 // SetArgv set spawns argv with the argv provided.
 func (s *SpawnOptions) SetArgv(argv []string) {
-	arr, len := stringSliceToCharArr(argv)
+	arr, sz := stringSliceToCharArr(argv)
 
-	C.frida_spawn_options_set_argv(s.opts, arr, len)
+	C.frida_spawn_options_set_argv(s.opts, arr, sz)
 }
 
 // GetArgv returns argv of the spawn.
@@ -45,8 +45,8 @@ func (s *SpawnOptions) SetEnvp(envp map[string]string) {
 		sl = append(sl, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	arr, len := stringSliceToCharArr(sl)
-	C.frida_spawn_options_set_envp(s.opts, arr, len)
+	arr, sz := stringSliceToCharArr(sl)
+	C.frida_spawn_options_set_envp(s.opts, arr, sz)
 }
 
 // GetEnvp returns envp of the spawn.
@@ -67,8 +67,8 @@ func (s *SpawnOptions) SetEnv(env map[string]string) {
 		sl = append(sl, fmt.Sprintf("%s=%s", k, v))
 	}
 
-	arr, len := stringSliceToCharArr(sl)
-	C.frida_spawn_options_set_env(s.opts, arr, len)
+	arr, sz := stringSliceToCharArr(sl)
+	C.frida_spawn_options_set_env(s.opts, arr, sz)
 }
 
 // GetEnv returns env of the spawn.
@@ -106,7 +106,7 @@ func (s *SpawnOptions) GetStdio() Stdio {
 
 // TODO
 func (s *SpawnOptions) SetAux(aux map[string]interface{}) {
-
+	_ = aux
 }
 
 // GetAux returns aux of the spawn.

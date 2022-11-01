@@ -6,37 +6,41 @@ import (
 	"unsafe"
 )
 
-type CleanupType string
+type cleanupType string
 
 const (
-	CleanGError    CleanupType = "*GError"
-	CleanPOD       CleanupType = "POD"
-	CleanFridaType CleanupType = "NonPOD"
+	unrefGError  cleanupType = "*GError"
+	unrefFrida   cleanupType = "frida types"
+	unrefGObject cleanupType = "GObject*"
 )
 
 type cleanupFn func(unsafe.Pointer)
 
-var cleanups = map[CleanupType]cleanupFn{
-	CleanGError:    gErrorFree,
-	CleanPOD:       unrefPOD,
-	CleanFridaType: unrefFrida,
+var cleanups = map[cleanupType]cleanupFn{
+	unrefGError:  gErrorFree,
+	unrefFrida:   unrefGObj,
+	unrefGObject: unrefGObj,
 }
 
 func gErrorFree(err unsafe.Pointer) {
 	C.g_error_free((*C.GError)(err))
 }
 
-func unrefPOD(obj unsafe.Pointer) {
+func unrefGObj(obj unsafe.Pointer) {
 	C.g_object_unref((C.gpointer)(obj))
 }
 
-func unrefFrida(obj unsafe.Pointer) {
-	C.frida_unref((C.gpointer)(obj))
-}
-
-func clean(obj unsafe.Pointer, cType CleanupType) {
+func clean(obj unsafe.Pointer, cType cleanupType) {
 	fn := cleanups[cType]
 	if fn != nil {
 		fn(obj)
 	}
+}
+
+func freeCharArray(arr **C.char, size C.int) {
+	for i := 0; i < int(size); i++ {
+		elem := getCharArrayElement(arr, i)
+		C.free(unsafe.Pointer(elem))
+	}
+	C.free(unsafe.Pointer(arr))
 }

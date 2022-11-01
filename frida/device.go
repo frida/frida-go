@@ -5,12 +5,13 @@ import "C"
 import (
 	"errors"
 	"reflect"
+	"runtime"
 	"sort"
 	"unsafe"
 )
 
 const (
-	defaultProcesstimeout = 10
+	defaultProcessTimeout = 10
 )
 
 // Device represents FridaDevice struct from frida-core
@@ -79,7 +80,7 @@ func (d *Device) Params() (map[string]interface{}, error) {
 	return params, nil
 }
 
-// GetFrontMostApplication will return the frontmost application or the application in focus
+// GetFrontmostApplication will return the frontmost application or the application in focus
 // on the device.
 func (d *Device) GetFrontmostApplication(scope Scope) (*Application, error) {
 	var err *C.GError
@@ -137,7 +138,7 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Appli
 // GetProcessByPid returns the process by passed pid.
 func (d *Device) GetProcessByPid(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
-	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
 
 	var err *C.GError
@@ -154,7 +155,7 @@ func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
 	defer C.free(unsafe.Pointer(nameC))
 
 	opts := C.frida_process_match_options_new()
-	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
 
 	var err *C.GError
@@ -168,7 +169,7 @@ func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
 // FindDeviceById will try to find the process with given pid.
 func (d *Device) FindProcessByPid(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
-	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
 
 	var err *C.GError
@@ -185,7 +186,7 @@ func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 	defer C.free(unsafe.Pointer(nameC))
 
 	opts := C.frida_process_match_options_new()
-	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcesstimeout))
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
 
 	var err *C.GError
@@ -283,8 +284,11 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 		opt = opts.opts
 	}
 
+	nameC := C.CString(name)
+	defer C.free(unsafe.Pointer(nameC))
+
 	var err *C.GError
-	pid := C.frida_device_spawn_sync(d.device, C.CString(name), opt, nil, &err)
+	pid := C.frida_device_spawn_sync(d.device, nameC, opt, nil, &err)
 	if err != nil {
 		return -1, &FridaError{err}
 	}
@@ -296,11 +300,15 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 func (d *Device) Input(pid int, data []byte) error {
 	arr, len := uint8ArrayFromByteSlice(data)
 	defer C.free(unsafe.Pointer(arr))
+
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	var err *C.GError
 	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
+	runtime.KeepAlive(gBytesData)
 	if err != nil {
 		return &FridaError{err}
 	}
@@ -449,8 +457,11 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 
 	arr, len := uint8ArrayFromByteSlice(byteData)
 	defer C.free(unsafe.Pointer(arr))
+
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	defer clean(unsafe.Pointer(gBytesData), CleanPOD)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	var err *C.GError
 	id := C.frida_device_inject_library_blob_sync(d.device,
@@ -460,6 +471,7 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 		dataC,
 		nil,
 		&err)
+	runtime.KeepAlive(gBytesData)
 	if err != nil {
 		return 0, &FridaError{err}
 	}

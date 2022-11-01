@@ -2,6 +2,7 @@ package frida
 
 //#include <frida-core.h>
 import "C"
+import "unsafe"
 
 // Child type represents child when child gating is enabled.
 type Child struct {
@@ -47,4 +48,8 @@ func (f *Child) GetEnvp() []string {
 	arr := C.frida_child_get_envp(f.child, &length)
 
 	return cArrayToStringSlice(arr, C.int(length))
+}
+
+func (f *Child) Clean() {
+	clean(unsafe.Pointer(f.child), unrefFrida)
 }

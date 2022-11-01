@@ -46,7 +46,7 @@ func GetLocalDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
 	if !ok {
-		dev, _ := mgr.GetDeviceByType(DEVICE_TYPE_LOCAL)
+		dev, _ := mgr.GetDeviceByType(DeviceTypeLocal)
 		data.Store("localDevice", dev)
 		return dev
 	}
@@ -62,7 +62,7 @@ func GetUSBDevice() *Device {
 			mgr.EnumerateDevices()
 			data.Store("enumeratedDevices", true)
 		}
-		dev, err := mgr.GetDeviceByType(DEVICE_TYPE_USB)
+		dev, err := mgr.GetDeviceByType(DeviceTypeUsb)
 		if err != nil {
 			return nil
 		}

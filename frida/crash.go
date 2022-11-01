@@ -4,7 +4,7 @@ package frida
 import "C"
 import "fmt"
 
-// FridaCrash represents crash of frida
+// Crash represents crash of frida.
 type Crash struct {
 	crash *C.FridaCrash
 }
@@ -27,6 +27,13 @@ func (c *Crash) GetSummary() string {
 // GetReport returns the report of the crash
 func (c *Crash) GetReport() string {
 	return C.GoString(C.frida_crash_get_report(c.crash))
+}
+
+// GetParams returns the parameters of the crash.
+func (c *Crash) GetParams() map[string]interface{} {
+	ht := C.frida_crash_get_parameters(c.crash)
+	params := gHashTableToMap(ht)
+	return params
 }
 
 // String returns string interpretation of the crash

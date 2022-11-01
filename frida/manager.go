@@ -36,9 +36,9 @@ func (f *DeviceManager) Close() error {
 // fn callback will be called with parameters populated.
 //
 // Signals available are:
-//	- "added" with callback as func(device *frida.Devica) {}
-//	- "removed" with callback as func(device *frida.Device) {}
-//	- "changed" with callback as func() {}
+//   - "added" with callback as func(device *frida.Devica) {}
+//   - "removed" with callback as func(device *frida.Device) {}
+//   - "changed" with callback as func() {}
 func (f *DeviceManager) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(f.manager), sigName, fn)
 }
@@ -62,19 +62,19 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 	return devices, nil
 }
 
-// GetLocalDevice returns the device with type DEVICE_TYPE_LOCAL.
+// GetLocalDevice returns the device with type DeviceTypeLocal.
 func (d *DeviceManager) GetLocalDevice() (*Device, error) {
-	return d.GetDeviceByType(DEVICE_TYPE_LOCAL)
+	return d.GetDeviceByType(DeviceTypeLocal)
 }
 
-// GetUSBDevice returns the device with type DEVICE_TYPE_USB.
+// GetUSBDevice returns the device with type DeviceTypeUsb.
 func (d *DeviceManager) GetUSBDevice() (*Device, error) {
-	return d.GetDeviceByType(DEVICE_TYPE_USB)
+	return d.GetDeviceByType(DeviceTypeUsb)
 }
 
-// GetRemoteDevice returns the device with type DEVICE_TYPE_REMOTE.
+// GetRemoteDevice returns the device with type DeviceTypeRemote.
 func (d *DeviceManager) GetRemoteDevice() (*Device, error) {
-	return d.GetDeviceByType(DEVICE_TYPE_REMOTE)
+	return d.GetDeviceByType(DeviceTypeRemote)
 }
 
 // GetDevice will return device with id passed or an error if it can't find any.

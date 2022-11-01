@@ -21,15 +21,16 @@ type Script struct {
 	fn reflect.Value
 }
 
-// On function connects specific signal to the callback function.
-// When the signal gets trigerred, the callback function will be called
-// with the parameters populated
-func (f *Script) On(sigName string, fn interface{}) {
-	f.fn = reflect.ValueOf(fn)
-	connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
+// IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
+func (f *Script) IsDestroyed() bool {
+	destroyed := C.frida_script_is_destroyed(f.sc)
+	if int(destroyed) == 1 {
+		return true
+	}
+	return false
 }
 
-// Load fuction loads the script into the process.
+// Load function loads the script into the process.
 func (f *Script) Load() error {
 	var err *C.GError
 	C.frida_script_load_sync(f.sc, nil, &err)
@@ -49,15 +50,6 @@ func (f *Script) Unload() error {
 	return nil
 }
 
-// IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
-func (f *Script) IsDestroyed() bool {
-	destroyed := C.frida_script_is_destroyed(f.sc)
-	if int(destroyed) == 1 {
-		return true
-	}
-	return false
-}
-
 // Eternalize function will keep the script loaded even after deataching from the process
 func (f *Script) Eternalize() error {
 	var err *C.GError
@@ -75,8 +67,11 @@ func (f *Script) Post(jsonString string, data []byte) {
 
 	arr, len := uint8ArrayFromByteSlice(data)
 	defer C.free(unsafe.Pointer(arr))
+
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) { clean(unsafe.Pointer(g), CleanPOD) })
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	C.frida_script_post(f.sc, jsonStringC, gBytesData)
 	runtime.KeepAlive(gBytesData)
@@ -122,6 +117,14 @@ func (f *Script) ExportsCall(fn string, args ...interface{}) interface{} {
 
 	ret := <-ch
 	return ret
+}
+
+// On function connects specific signal to the callback function.
+// When the signal gets trigerred, the callback function will be called
+// with the parameters populated
+func (f *Script) On(sigName string, fn interface{}) {
+	f.fn = reflect.ValueOf(fn)
+	connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
 }
 
 func getRpcIdFromMessage(message string) (string, interface{}, error) {

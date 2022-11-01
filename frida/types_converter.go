@@ -8,6 +8,7 @@ package frida
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 
 static char * get_gvalue_gtype(GValue * val) {
 	return (char*)(G_VALUE_TYPE_NAME(val));
@@ -49,6 +50,23 @@ static int get_in_port(struct sockaddr *sa)
 static struct sockaddr * new_addr() {
 	struct sockaddr * addr = malloc(sizeof(struct sockaddr));
 	return addr;
+}
+
+
+static char ** new_char_array(int size) {
+	return malloc(sizeof(char*) * size);
+}
+static void add_to_arr(char **arr, char *s, int n) {
+	arr[n] = s;
+}
+static char * get_char_elem(char **arr, int n) {
+	return arr[n];
+}
+static guint8 * new_guint8_array(int size) {
+	return malloc(sizeof(guint8) * size);
+}
+static void att_to_guint8_array(guint8 * arr, guint8 elem, int n) {
+	arr[n] = elem;
 }
 */
 import "C"
@@ -189,10 +207,6 @@ func getFridaApplication(val *C.GValue) interface{} {
 	}
 }
 
-func goValueFromGValue(val *C.GValue) interface{} {
-	return nil
-}
-
 func getGoValueFromGValue(val *C.GValue) interface{} {
 	gt := C.get_gvalue_gtype(val)
 
@@ -202,4 +216,51 @@ func getGoValueFromGValue(val *C.GValue) interface{} {
 	}
 
 	return f(val)
+}
+
+func getCharArrayElement(arr **C.char, n int) *C.char {
+	elem := C.get_char_elem(arr, C.int(n))
+	return elem
+}
+
+func cArrayToStringSlice(arr **C.char, length C.int) []string {
+	s := []string{}
+
+	for i := 0; i < int(length); i++ {
+		elem := C.get_char_elem(arr, C.int(i))
+		s = append(s, C.GoString(elem))
+	}
+
+	return s
+}
+
+func stringSliceToCharArr(ss []string) (**C.char, C.int) {
+	arr := C.new_char_array(C.int(len(ss)))
+
+	for i, s := range ss {
+		C.add_to_arr(arr, C.CString(s), C.int(i))
+	}
+
+	return arr, C.int(len(ss))
+}
+
+func uint8ArrayFromByteSlice(bts []byte) (*C.guint8, C.int) {
+	arr := C.new_guint8_array(C.int(len(bts)))
+
+	for i, bt := range bts {
+		C.att_to_guint8_array(arr, C.guint8(bt), C.int(i))
+	}
+
+	return arr, C.int(len(bts))
+}
+
+func goBytesToGBytes(bts []byte) *C.GBytes {
+	arr := C.new_guint8_array(C.int(len(bts)))
+
+	for i, bt := range bts {
+		C.att_to_guint8_array(arr, C.guint8(bt), C.int(i))
+	}
+
+	gBytes := C.g_bytes_new((C.gconstpointer)(arr), C.gsize(len(bts)))
+	return gBytes
 }

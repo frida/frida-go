@@ -5,6 +5,7 @@ import "C"
 
 import (
 	"fmt"
+	"unsafe"
 )
 
 // Application represents the main application installed on the device
@@ -39,4 +40,8 @@ func (a *Application) GetParams() map[string]interface{} {
 	params := gHashTableToMap(ht)
 
 	return params
+}
+
+func (a *Application) Clean() {
+	clean(unsafe.Pointer(a.application), unrefFrida)
 }

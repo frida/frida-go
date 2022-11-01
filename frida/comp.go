@@ -22,6 +22,7 @@ func (c *Compiler) On(sigName string, fn interface{}) {
 
 func (c *Compiler) Build(entrypoint string) (string, error) {
 	entrypointC := C.CString(entrypoint)
+	defer C.free(unsafe.Pointer(entrypointC))
 
 	var err *C.GError
 	ret := C.frida_compiler_build_sync(c.cc, entrypointC, nil, nil, &err)
@@ -34,6 +35,7 @@ func (c *Compiler) Build(entrypoint string) (string, error) {
 
 func (c *Compiler) Watch(entrypoint string) error {
 	entrypointC := C.CString(entrypoint)
+	defer C.free(unsafe.Pointer(entrypointC))
 
 	var err *C.GError
 	C.frida_compiler_watch_sync(c.cc, entrypointC, nil, nil, &err)

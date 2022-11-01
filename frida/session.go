@@ -41,9 +41,9 @@ func (s *Session) Resume() error {
 }
 
 // EnableChildGating enables child gating on the session.
-func (f *Session) EnableChildGating() error {
+func (s *Session) EnableChildGating() error {
 	var err *C.GError
-	C.frida_session_enable_child_gating_sync(f.s, nil, &err)
+	C.frida_session_enable_child_gating_sync(s.s, nil, &err)
 	if err != nil {
 		return &FridaError{err}
 	}
@@ -52,9 +52,9 @@ func (f *Session) EnableChildGating() error {
 }
 
 // DisableChildGating disables child gating on the session.
-func (f *Session) DisableChildGating() error {
+func (s *Session) DisableChildGating() error {
 	var err *C.GError
-	C.frida_session_disable_child_gating_sync(f.s, nil, &err)
+	C.frida_session_disable_child_gating_sync(s.s, nil, &err)
 	if err != nil {
 		return &FridaError{err}
 	}
@@ -62,29 +62,65 @@ func (f *Session) DisableChildGating() error {
 	return nil
 }
 
-// Create script creates new string from the string provided.
-func (f *Session) CreateScript(script string) (*Script, error) {
-	return f.CreateScriptWithSnapshot(script, nil)
+// CreateScript creates new string from the string provided.
+func (s *Session) CreateScript(script string) (*Script, error) {
+	return s.CreateScriptWithSnapshot(script, nil)
 }
 
-// TODO
-func (f *Session) CreateScriptBytes(script []byte) (*Script, error) {
-	return nil, nil
+// CreateScriptBytes is a wrapper around CreateScript(script string)
+func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script, error) {
+	bts := goBytesToGBytes(script)
+
+	if opts == nil {
+		opts = NewScriptOptions("frida-go")
+	}
+
+	var err *C.GError
+	sc := C.frida_session_create_script_from_bytes_sync(s.s,
+		bts,
+		opts.opts,
+		nil,
+		&err)
+	clean(unsafe.Pointer(bts), unrefGObject)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	return &Script{
+		sc: sc,
+	}, nil
 }
 
-// TODO
-func (f *Session) CompileScript(script string) ([]byte, error) {
-	return nil, nil
+// CompileScript compiles the script from the script as string provided.
+func (s *Session) CompileScript(script string, opts *ScriptOptions) ([]byte, error) {
+	scriptC := C.CString(script)
+	defer C.free(unsafe.Pointer(scriptC))
+
+	if opts == nil {
+		opts = NewScriptOptions("frida-go")
+	}
+
+	var err *C.GError
+	bts := C.frida_session_compile_script_sync(s.s,
+		scriptC,
+		opts.opts,
+		nil,
+		&err)
+	if err != nil {
+		return nil, &FridaError{err}
+	}
+
+	return getGBytes(bts), nil
 }
 
 // SnapshotScript creates snapshot from the script.
-func (f *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptions) ([]byte, error) {
+func (s *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptions) ([]byte, error) {
 	embedScriptC := C.CString(embedScript)
 	defer C.free(unsafe.Pointer(embedScriptC))
 
 	var err *C.GError
 	ret := C.frida_session_snapshot_script_sync(
-		f.s,
+		s.s,
 		embedScriptC,
 		snapshotOpts.opts,
 		nil,
@@ -101,7 +137,7 @@ func (f *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 
 // CreateScriptWithSnapshot creates the script with the script options provided.
 // Useful in cases where you previously created the snapshot.
-func (f *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (*Script, error) {
+func (s *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (*Script, error) {
 	sc := C.CString(script)
 	defer C.free(unsafe.Pointer(sc))
 
@@ -114,7 +150,7 @@ func (f *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (
 	}
 
 	var err *C.GError
-	cScript := C.frida_session_create_script_sync(f.s, sc, opts.opts, nil, &err)
+	cScript := C.frida_session_create_script_sync(s.s, sc, opts.opts, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
@@ -134,12 +170,12 @@ func (s *Session) SetupPeerConnection(opts *PeerOptions) error {
 }
 
 // JoinPortal joins portal at the address with portal options provided.
-func (f *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMembership, error) {
+func (s *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMembership, error) {
 	addrC := C.CString(address)
 	defer C.free(unsafe.Pointer(addrC))
 
 	var err *C.GError
-	mem := C.frida_session_join_portal_sync(f.s, addrC, opts.opts, nil, &err)
+	mem := C.frida_session_join_portal_sync(s.s, addrC, opts.opts, nil, &err)
 	if err != nil {
 		return nil, &FridaError{err}
 	}
@@ -147,6 +183,6 @@ func (f *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMember
 	return &PortalMembership{mem}, nil
 }
 
-func (f *Session) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(f.s), sigName, fn)
+func (s *Session) On(sigName string, fn interface{}) {
+	connectClosure(unsafe.Pointer(s.s), sigName, fn)
 }
