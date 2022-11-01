@@ -15,9 +15,9 @@ type AuthenticationFn func(string) string
 
 // EParams represent config needed to setup endpoint parameters that are used to setup Portal.
 // Types of authentication includes:
-//	- no authentication (not providing Token nor AuthenticationCallback)
-//	- static authentication (providing token)
-//	- authentication using callback (providing AuthenticationCallback)
+//   - no authentication (not providing Token nor AuthenticationCallback)
+//   - static authentication (providing token)
+//   - authentication using callback (providing AuthenticationCallback)
 //
 // If the Token and AuthenticationCallback are passed, static authentication will be used (token based)
 type EParams struct {
@@ -49,7 +49,7 @@ func authenticate(cb unsafe.Pointer, token *C.char) *C.char {
 // provided EParams object.
 func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	if params.Address == "" {
-		return nil, errors.New("You need to provide address")
+		return nil, errors.New("you need to provide address")
 	}
 
 	addrC := C.CString(params.Address)
@@ -57,15 +57,15 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 
 	var tknC *C.char = nil
 	var originC *C.char = nil
-	var auth_service *C.FridaAuthenticationService = nil
+	var authService *C.FridaAuthenticationService = nil
 
 	if params.Token != "" {
 		tknC = C.CString(params.Token)
 		defer C.free(unsafe.Pointer(tknC))
 
-		auth_service = (*C.FridaAuthenticationService)(C.frida_static_authentication_service_new(tknC))
+		authService = (*C.FridaAuthenticationService)(C.frida_static_authentication_service_new(tknC))
 	} else if params.AuthenticationCallback != nil {
-		auth_service = (*C.FridaAuthenticationService)(C.frida_go_authentication_service_new(unsafe.Pointer(&params.AuthenticationCallback)))
+		authService = (*C.FridaAuthenticationService)(C.frida_go_authentication_service_new(unsafe.Pointer(&params.AuthenticationCallback)))
 	}
 
 	if params.Origin != "" {
@@ -73,16 +73,48 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 		defer C.free(unsafe.Pointer(originC))
 	}
 
-	cert, _ := gTlsCertificateFromFile(params.Certificate)
-	_ = cert
+	var cert *C.GTlsCertificate = nil
+	if params.Certificate != "" {
+		crt, err := gTlsCertificateFromFile(params.Certificate)
+		if err != nil {
+			return nil, &FridaError{err}
+		}
+		cert = crt
+	}
+
 	ret := C.frida_endpoint_parameters_new(
 		addrC,
 		C.guint16(params.Port),
-		nil,
+		cert,
 		originC,
-		auth_service,
-		nil,
+		authService,
+		nil, //TODO: implement asset root method
 	)
 
 	return &EndpointParameters{ret}, nil
+}
+
+// GetAddress returns the address of the endpoint parameters.
+func (e *EndpointParameters) GetAddress() string {
+	return C.GoString(C.frida_endpoint_parameters_get_address(e.params))
+}
+
+// GetPort returns the port of the endpoint parameters.
+func (e *EndpointParameters) GetPort() uint16 {
+	return uint16(C.frida_endpoint_parameters_get_port(e.params))
+}
+
+// GetCertificate returns the certificate of the endpoint parameters.
+func (e *EndpointParameters) GetCertificate() *C.GTlsCertificate {
+	return C.frida_endpoint_parameters_get_certificate(e.params)
+}
+
+// GetOrigin returns the origin of the endpoint parameters.
+func (e *EndpointParameters) GetOrigin() string {
+	return C.GoString(C.frida_endpoint_parameters_get_certificate(e.params))
+}
+
+// SetAssetRoot sets asset root directory for the portal.
+func (e *EndpointParameters) SetAssetRoot(assetPath string) {
+	// TODO: implement method
 }
