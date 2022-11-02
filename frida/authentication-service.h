@@ -1,7 +1,6 @@
 #ifndef __AUTHENTICATION_SERVICE_H__
 #define __AUTHENTICATION_SERVICE_H__
 
-#include <glib-object.h>
 #include <frida-core.h>
 
 #define FRIDA_TYPE_GO_AUTHENTICATION_SERVICE (frida_go_authentication_service_get_type ())

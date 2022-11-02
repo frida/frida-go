@@ -58,6 +58,7 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	var tknC *C.char = nil
 	var originC *C.char = nil
 	var authService *C.FridaAuthenticationService = nil
+	var assetPath *C.GFile = nil
 
 	if params.Token != "" {
 		tknC = C.CString(params.Token)
@@ -82,13 +83,17 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 		cert = crt
 	}
 
+	if params.AssetRoot != "" {
+		assetPath = gFileFromPath(params.AssetRoot)
+	}
+
 	ret := C.frida_endpoint_parameters_new(
 		addrC,
 		C.guint16(params.Port),
 		cert,
 		originC,
 		authService,
-		nil, //TODO: implement asset root method
+		assetPath,
 	)
 
 	return &EndpointParameters{ret}, nil
@@ -114,7 +119,15 @@ func (e *EndpointParameters) GetOrigin() string {
 	return C.GoString(C.frida_endpoint_parameters_get_origin(e.params))
 }
 
+// GetAssetRoot returns the asset root directory.
+func (e *EndpointParameters) GetAssetRoot() string {
+	assetRoot := C.frida_endpoint_parameters_get_asset_root(e.params)
+	pathC := C.g_file_get_path(assetRoot)
+	return C.GoString(pathC)
+}
+
 // SetAssetRoot sets asset root directory for the portal.
 func (e *EndpointParameters) SetAssetRoot(assetPath string) {
-	// TODO: implement method
+	assetRoot := gFileFromPath(assetPath)
+	C.frida_endpoint_parameters_set_asset_root(e.params, assetRoot)
 }

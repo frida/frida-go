@@ -2,35 +2,74 @@ package frida
 
 /*#include <frida-core.h>
 #include <stdlib.h>
-#include <glib.h>
 */
 import "C"
 import "unsafe"
 
-/*
-FridaRemoteDeviceOptions * frida_remote_device_options_new (void);
-
-GTlsCertificate * frida_remote_device_options_get_certificate (FridaRemoteDeviceOptions * self);
-const gchar * frida_remote_device_options_get_origin (FridaRemoteDeviceOptions * self);
-const gchar * frida_remote_device_options_get_token (FridaRemoteDeviceOptions * self);
-gint frida_remote_device_options_get_keepalive_interval (FridaRemoteDeviceOptions * self);
-
-void frida_remote_device_options_set_certificate (FridaRemoteDeviceOptions * self, GTlsCertificate * value);
-void frida_remote_device_options_set_origin (FridaRemoteDeviceOptions * self, const gchar * value);
-void frida_remote_device_options_set_token (FridaRemoteDeviceOptions * self, const gchar * value);
-void frida_remote_device_options_set_keepalive_interval (FridaRemoteDeviceOptions * self, gint value);
-*/
-
+// RemoteDeviceOptions type is used to configure the remote device.
 type RemoteDeviceOptions struct {
 	opts *C.FridaRemoteDeviceOptions
 }
 
+// NewRemoteDeviceOptions returns the new remote device options.
 func NewRemoteDeviceOptions() *RemoteDeviceOptions {
 	opts := C.frida_remote_device_options_new()
 
 	return &RemoteDeviceOptions{
 		opts: opts,
 	}
+}
+
+// GetCertificate returns the certificate for the remote device options.
+func (r *RemoteDeviceOptions) GetCertificate() *C.GTlsCertificate {
+	return C.frida_remote_device_options_get_certificate(r.opts)
+}
+
+// GetOrigin returns the origin for the remote device options.
+func (r *RemoteDeviceOptions) GetOrigin() string {
+	return C.GoString(C.frida_remote_device_options_get_origin(r.opts))
+}
+
+// GetToken returns the token for the remote device options.
+func (r *RemoteDeviceOptions) GetToken() string {
+	return C.GoString(C.frida_remote_device_options_get_token(r.opts))
+}
+
+// GetKeepAliveInterval returns the keepalive interval for the remote device options.
+func (r *RemoteDeviceOptions) GetKeepAliveInterval() int {
+	return int(C.frida_remote_device_options_get_keepalive_interval(r.opts))
+}
+
+// SetCertificate sets the certificate for the remote device.
+func (r *RemoteDeviceOptions) SetCertificate(certPath string) error {
+	cert, err := gTlsCertificateFromFile(certPath)
+	if err != nil {
+		return err
+	}
+
+	C.frida_remote_device_options_set_certificate(r.opts, cert)
+	return nil
+}
+
+// SetOrigin sets the origin for the remote device options.
+func (r *RemoteDeviceOptions) SetOrigin(origin string) {
+	originC := C.CString(origin)
+	defer C.free(unsafe.Pointer(originC))
+
+	C.frida_remote_device_options_set_origin(r.opts, originC)
+}
+
+// SetToken sets the token for the remote device options.
+func (r *RemoteDeviceOptions) SetToken(token string) {
+	tokenC := C.CString(token)
+	defer C.free(unsafe.Pointer(tokenC))
+
+	C.frida_remote_device_options_set_token(r.opts, tokenC)
+}
+
+// SetKeepAlive sets keepalive interval for the remote device options.
+func (r *RemoteDeviceOptions) SetKeepAlive(interval int) {
+	C.frida_remote_device_options_set_keepalive_interval(r.opts, C.gint(interval))
 }
 
 func gTlsCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
@@ -46,30 +85,9 @@ func gTlsCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
 	return gtls, nil
 }
 
-func (f *RemoteDeviceOptions) SetCertificate(pempath string) error {
-	cert, err := gTlsCertificateFromFile(pempath)
-	if err != nil {
-		return err
-	}
+func gFileFromPath(assetPath string) *C.GFile {
+	pth := C.CString(assetPath)
+	defer C.free(unsafe.Pointer(pth))
 
-	C.frida_remote_device_options_set_certificate(f.opts, cert)
-	return nil
-}
-
-func (f *RemoteDeviceOptions) SetOrigin(origin string) {
-	originC := C.CString(origin)
-	defer C.free(unsafe.Pointer(originC))
-
-	C.frida_remote_device_options_set_origin(f.opts, originC)
-}
-
-func (f *RemoteDeviceOptions) SetToken(token string) {
-	tokenC := C.CString(token)
-	defer C.free(unsafe.Pointer(tokenC))
-
-	C.frida_remote_device_options_set_token(f.opts, tokenC)
-}
-
-func (f *RemoteDeviceOptions) SetKeepAlive(interval int) {
-	C.frida_remote_device_options_set_keepalive_interval(f.opts, C.gint(interval))
+	return C.g_file_new_for_path(pth)
 }

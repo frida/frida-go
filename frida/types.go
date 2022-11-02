@@ -45,9 +45,9 @@ func (s ScriptRuntime) String() string {
 type Scope int
 
 const (
-	SCOPE_MINIMAL Scope = iota
-	SCOPE_METADATA
-	SCOPE_FULL
+	ScopeMinimal Scope = iota
+	ScopeMetadata
+	ScopeFull
 )
 
 func (s Scope) String() string {

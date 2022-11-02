@@ -1,5 +1,3 @@
-#include <glib-object.h>
-#include <frida-core.h>
 #include "authentication-service.h"
 
 void startupfun (void) __attribute__ ((constructor));

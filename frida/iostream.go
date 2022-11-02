@@ -1,6 +1,6 @@
 package frida
 
-/*#include <gio/gio.h>
+/*#include <frida-core.h>
 
 static void *
 read_input_stream(GInputStream *stream, gsize count, gsize *bytes_read, GError **error) {

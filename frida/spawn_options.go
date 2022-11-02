@@ -104,11 +104,6 @@ func (s *SpawnOptions) GetStdio() Stdio {
 	return Stdio(int(C.frida_spawn_options_get_stdio(s.opts)))
 }
 
-// TODO: implement set aux method(convert map to ghashtable)
-func (s *SpawnOptions) SetAux(aux map[string]interface{}) {
-	_ = aux
-}
-
 // GetAux returns aux of the spawn.
 func (s *SpawnOptions) GetAux() map[string]interface{} {
 	ht := C.frida_spawn_options_get_aux(s.opts)

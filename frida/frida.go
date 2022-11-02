@@ -4,7 +4,6 @@ package frida
 /*
 #cgo LDFLAGS: -lfrida-core -lm -ldl -lpthread -lresolv
 #cgo CFLAGS: -I/usr/local/include/ -w
-#cgo pkg-config: glib-2.0
 #cgo darwin LDFLAGS: -lbsm -framework Foundation -framework AppKit
 #cgo linux LDFLAGS: -lrt
 #cgo linux CFLAGS: -pthread

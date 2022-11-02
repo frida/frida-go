@@ -1,8 +1,6 @@
 package frida
 
 /*
-#include <glib.h>
-#include <glib-object.h>
 #include <frida-core.h>
 #include <stdio.h>
 #include <sys/socket.h>

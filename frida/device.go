@@ -342,7 +342,7 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 	var pid int
 	switch v := reflect.ValueOf(val); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(val.(string), SCOPE_MINIMAL)
+		proc, err := d.GetProcessByName(val.(string), ScopeMinimal)
 		if err != nil {
 			return nil, err
 		}
@@ -373,7 +373,7 @@ func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data st
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(target.(string), SCOPE_MINIMAL)
+		proc, err := d.GetProcessByName(target.(string), ScopeMinimal)
 		if err != nil {
 			return 0, err
 		}
@@ -427,7 +427,7 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(target.(string), SCOPE_MINIMAL)
+		proc, err := d.GetProcessByName(target.(string), ScopeMinimal)
 		if err != nil {
 			return 0, err
 		}

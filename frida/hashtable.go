@@ -1,6 +1,6 @@
 package frida
 
-//#include <glib.h>
+//#include <frida-core.h>
 import "C"
 import "unsafe"
 

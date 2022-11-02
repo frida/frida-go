@@ -1,7 +1,6 @@
 package frida
 
 //#include <frida-core.h>
-//#include <glib.h>
 import "C"
 import (
 	"runtime"

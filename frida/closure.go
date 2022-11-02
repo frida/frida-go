@@ -1,8 +1,7 @@
 package frida
 
 /*
-#include <glib.h>
-#include <glib-object.h>
+#include <frida-core.h>
 #include <stdio.h>
 
 extern void goMarshalCls(GClosure*, GValue*, guint, GValue*, gpointer, GValue*);
