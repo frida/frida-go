@@ -21,9 +21,9 @@ func main() {
 	ropts := frida.NewRemoteDeviceOptions()
 	ropts.SetToken("secret_token")
 
-	fmt.Printf("Origin: %s\n", ropts.GetOrigin())
-	fmt.Printf("Token: %s\n", ropts.GetToken())
-	fmt.Printf("Keepalive: %d\n", ropts.GetKeepAliveInterval())
+	fmt.Printf("Origin: %s\n", ropts.Origin())
+	fmt.Printf("Token: %s\n", ropts.Token())
+	fmt.Printf("Keepalive: %d\n", ropts.KeepAliveInterval())
 
 	dev, err := mgr.AddRemoteDevice("localhost", ropts)
 	if err != nil {

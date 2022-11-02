@@ -83,20 +83,20 @@ func main() {
 	}
 	defer portal.Stop()
 
-	clusterParams := portal.GetClusterParams()
-	controlParams := portal.GetControlParams()
+	clusterParams := portal.ClusterParams()
+	controlParams := portal.ControlParams()
 
 	fmt.Println("Cluster parameters")
-	fmt.Printf("Address: %s\n", clusterParams.GetAddress())
-	fmt.Printf("Origin: %s\n", clusterParams.GetOrigin())
-	fmt.Printf("Port: %d\n", clusterParams.GetPort())
-	fmt.Printf("Asset root: %s\n", clusterParams.GetAssetRoot())
+	fmt.Printf("Address: %s\n", clusterParams.Address())
+	fmt.Printf("Origin: %s\n", clusterParams.Origin())
+	fmt.Printf("Port: %d\n", clusterParams.Port())
+	fmt.Printf("Asset root: %s\n", clusterParams.AssetRoot())
 
 	fmt.Println("Control parameters")
-	fmt.Printf("Address: %s\n", controlParams.GetAddress())
-	fmt.Printf("Origin: %s\n", controlParams.GetOrigin())
-	fmt.Printf("Port: %d\n", controlParams.GetPort())
-	fmt.Printf("Asset root: %s\n", controlParams.GetAssetRoot())
+	fmt.Printf("Address: %s\n", controlParams.Address())
+	fmt.Printf("Origin: %s\n", controlParams.Origin())
+	fmt.Printf("Port: %d\n", controlParams.Port())
+	fmt.Printf("Asset root: %s\n", controlParams.AssetRoot())
 
 	portal.On("node_connected", func(connId uint, addr *frida.Address) {
 		fmt.Printf("[*] Node connected: %s(connId=%d)\n", addr, connId)
