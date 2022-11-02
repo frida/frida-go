@@ -22,7 +22,7 @@ func main() {
 	fmt.Printf("[*] Identifier: %s\n", fma.GetIdentifier())
 	fmt.Printf("[*] PID: %d\n", fma.GetPid())
 	fmt.Printf("[*] Params: \n")
-	p := fma.Params()
+	p := fma.GetParams()
 
 	var loopMap func(map[string]interface{})
 	loopMap = func(mp map[string]interface{}) {
