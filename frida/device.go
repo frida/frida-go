@@ -10,10 +10,6 @@ import (
 	"unsafe"
 )
 
-const (
-	defaultProcessTimeout = 10
-)
-
 // Device represents FridaDevice struct from frida-core
 type Device struct {
 	device *C.FridaDevice

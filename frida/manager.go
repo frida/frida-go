@@ -5,24 +5,20 @@ import "C"
 
 import "unsafe"
 
-const (
-	defaultDeviceTimeout = 10
-)
-
 // DeviceManager is the main structure which holds on devices available to Frida
 // Single instance of the DeviceManager is created when you call frida.Attach() or frida.GetLocalDevice().
 type DeviceManager struct {
 	manager *C.FridaDeviceManager
 }
 
-// NewManager returns new frida device manager.
+// NewDeviceManager returns new frida device manager.
 func NewDeviceManager() *DeviceManager {
 	manager := C.frida_device_manager_new()
 	mgr := &DeviceManager{manager}
 	return mgr
 }
 
-// Close() method will close current manager.
+// Close method will close current manager.
 func (f *DeviceManager) Close() error {
 	var err *C.GError
 	C.frida_device_manager_close_sync(f.manager, nil, &err)

@@ -2,6 +2,11 @@ package frida
 
 import "fmt"
 
+const (
+	defaultDeviceTimeout  = 10
+	defaultProcessTimeout = 10
+)
+
 type DeviceType int
 
 const (
