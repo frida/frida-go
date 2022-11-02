@@ -5,10 +5,12 @@ package frida
 import "C"
 import "unsafe"
 
+// Compiler type is used to compile scripts.
 type Compiler struct {
 	cc *C.FridaCompiler
 }
 
+// NewCompiler creates new compiler.
 func NewCompiler() *Compiler {
 	mgr := getDeviceManager()
 	cc := C.frida_compiler_new(mgr.manager)
@@ -16,10 +18,7 @@ func NewCompiler() *Compiler {
 	return &Compiler{cc}
 }
 
-func (c *Compiler) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(c.cc), sigName, fn)
-}
-
+// Build builds the script from the entrypoint.
 func (c *Compiler) Build(entrypoint string) (string, error) {
 	entrypointC := C.CString(entrypoint)
 	defer C.free(unsafe.Pointer(entrypointC))
@@ -33,6 +32,7 @@ func (c *Compiler) Build(entrypoint string) (string, error) {
 	return C.GoString(ret), nil
 }
 
+// Watch watches for changes at the entrypoint and sends the "output" signal.
 func (c *Compiler) Watch(entrypoint string) error {
 	entrypointC := C.CString(entrypoint)
 	defer C.free(unsafe.Pointer(entrypointC))
@@ -44,4 +44,8 @@ func (c *Compiler) Watch(entrypoint string) error {
 	}
 
 	return nil
+}
+
+func (c *Compiler) On(sigName string, fn interface{}) {
+	connectClosure(unsafe.Pointer(c.cc), sigName, fn)
 }

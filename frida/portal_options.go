@@ -56,6 +56,6 @@ func (p *PortalOptions) SetToken(token string) {
 // SetACL sets the acls from the string slice provided.
 func (p *PortalOptions) SetACL(acls []string) {
 	arr, sz := stringSliceToCharArr(acls)
-	C.frida_portal_set_acl(p.opts, arr, C.gint(sz))
+	C.frida_portal_options_set_acl(p.opts, arr, C.gint(sz))
 	freeCharArray(arr, C.int(sz))
 }
