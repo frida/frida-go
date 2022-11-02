@@ -108,25 +108,25 @@ import (
 	"unsafe"
 )
 
-type GTypeName string
+type gTypeName string
 
 const (
-	gchararray               GTypeName = "gchararray"
-	gBytes                   GTypeName = "GBytes"
-	fridaCrash               GTypeName = "FridaCrash"
-	fridaSessionDetachReason GTypeName = "FridaSessionDetachReason"
-	fridaChild               GTypeName = "FridaChild"
-	fridaDevice              GTypeName = "FridaDevice"
-	fridaApplication         GTypeName = "FridaApplication"
-	guint                    GTypeName = "guint"
-	gint                     GTypeName = "gint"
-	gFileMonitorEvent        GTypeName = "GFileMonitorEvent"
-	gSocketAddress           GTypeName = "GSocketAddress"
+	gchararray               gTypeName = "gchararray"
+	gBytes                   gTypeName = "GBytes"
+	fridaCrash               gTypeName = "FridaCrash"
+	fridaSessionDetachReason gTypeName = "FridaSessionDetachReason"
+	fridaChild               gTypeName = "FridaChild"
+	fridaDevice              gTypeName = "FridaDevice"
+	fridaApplication         gTypeName = "FridaApplication"
+	guint                    gTypeName = "guint"
+	gint                     gTypeName = "gint"
+	gFileMonitorEvent        gTypeName = "GFileMonitorEvent"
+	gSocketAddress           gTypeName = "GSocketAddress"
 )
 
 type marshallerFunc func(val *C.GValue) interface{}
 
-var GTypeString = map[GTypeName]marshallerFunc{
+var gTypeString = map[gTypeName]marshallerFunc{
 	gchararray:               getString,
 	gBytes:                   getGBytesV,
 	fridaCrash:               getFridaCrash,
@@ -244,7 +244,7 @@ func getFridaApplication(val *C.GValue) interface{} {
 func getGoValueFromGValue(val *C.GValue) interface{} {
 	gt := C.get_gvalue_gtype(val)
 
-	f, ok := GTypeString[GTypeName(C.GoString(gt))]
+	f, ok := gTypeString[gTypeName(C.GoString(gt))]
 	if !ok {
 		return struct{}{}
 	}
