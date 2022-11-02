@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	session, err := frida.Attach("Telegram")
+	session, err := frida.Attach(0)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -17,7 +17,7 @@ func main() {
 	popts := frida.NewPortalOptions()
 	popts.SetToken(os.Args[1])
 
-	mem, err := session.JoinPortal("192.168.0.72", popts)
+	mem, err := session.JoinPortal("localhost", popts)
 	if err != nil {
 		panic(err)
 	}

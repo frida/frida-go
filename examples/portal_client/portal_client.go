@@ -19,15 +19,18 @@ func main() {
 	mgr := frida.NewDeviceManager()
 
 	ropts := frida.NewRemoteDeviceOptions()
-	ropts.SetOrigin("*")
-	ropts.SetToken("erhad")
+	ropts.SetToken("secret_token")
 
-	dev, err := mgr.AddRemoteDevice("192.168.0.31", ropts)
+	fmt.Printf("Origin: %s\n", ropts.GetOrigin())
+	fmt.Printf("Token: %s\n", ropts.GetToken())
+	fmt.Printf("Keepalive: %d\n", ropts.GetKeepAliveInterval())
+
+	dev, err := mgr.AddRemoteDevice("localhost", ropts)
 	if err != nil {
 		panic(err)
 	}
 
-	procs, err := dev.EnumerateProcesses(frida.SCOPE_FULL)
+	procs, err := dev.EnumerateProcesses(frida.ScopeFull)
 	if err != nil {
 		panic(err)
 	}
@@ -97,21 +100,21 @@ func main() {
 				Data: "",
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "list_channels":
 			c := cmd{
 				Type: "list_channels",
 				Data: "",
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "list_users":
 			c := cmd{
 				Type: "list_users",
 				Data: "",
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "register":
 			name = splitted[1]
 			c := cmd{
@@ -119,7 +122,7 @@ func main() {
 				Data: splitted[1],
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "msg":
 			c := cmd{
 				Type: "msg",
@@ -130,14 +133,14 @@ func main() {
 				},
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "join":
 			c := cmd{
 				Type: "join",
 				Data: splitted[1],
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "msgc":
 			c := cmd{
 				Type: "msgc",
@@ -148,7 +151,7 @@ func main() {
 				},
 			}
 			d, _ := json.Marshal(c)
-			bus.Post(string(d))
+			bus.Post(string(d), nil)
 		case "exit":
 			os.Exit(1)
 		}

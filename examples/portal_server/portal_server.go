@@ -50,13 +50,14 @@ func main() {
 	cluster, err := frida.NewEndpointParameters(&frida.EParams{
 		Address: "0.0.0.0",
 		Port:    27052,
-		Token:   "staticToken",
+		//Token:   "staticToken",
 		AuthenticationCallback: func(token string) string {
 			if token == "secret_token" {
 				return "thisIsSupposedToBeSomeRandomToken"
 			}
 			return ""
 		},
+		AssetRoot: "/Users/daemon1/",
 	})
 
 	if err != nil {
@@ -66,13 +67,14 @@ func main() {
 	control, err := frida.NewEndpointParameters(&frida.EParams{
 		Address: "0.0.0.0",
 		Port:    27042,
-		Token:   "staticToken",
+		//Token:   "staticToken",
 		AuthenticationCallback: func(token string) string {
 			if token == "secret_token" {
 				return "thisIsSupposedToBeSomeRandomToken"
 			}
 			return ""
 		},
+		AssetRoot: "/Users/daemon1/",
 	})
 
 	portal := frida.NewPortal(cluster, control)
@@ -80,6 +82,21 @@ func main() {
 		panic(err)
 	}
 	defer portal.Stop()
+
+	clusterParams := portal.GetClusterParams()
+	controlParams := portal.GetControlParams()
+
+	fmt.Println("Cluster parameters")
+	fmt.Printf("Address: %s\n", clusterParams.GetAddress())
+	fmt.Printf("Origin: %s\n", clusterParams.GetOrigin())
+	fmt.Printf("Port: %d\n", clusterParams.GetPort())
+	fmt.Printf("Asset root: %s\n", clusterParams.GetAssetRoot())
+
+	fmt.Println("Control parameters")
+	fmt.Printf("Address: %s\n", controlParams.GetAddress())
+	fmt.Printf("Origin: %s\n", controlParams.GetOrigin())
+	fmt.Printf("Port: %d\n", controlParams.GetPort())
+	fmt.Printf("Asset root: %s\n", controlParams.GetAssetRoot())
 
 	portal.On("node_connected", func(connId uint, addr *frida.Address) {
 		fmt.Printf("[*] Node connected: %s(connId=%d)\n", addr, connId)

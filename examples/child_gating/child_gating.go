@@ -77,7 +77,7 @@ func main() {
 		"-c",
 		"cat /etc/hosts",
 	})
-	fopts.SetStdio(frida.STDIO_PIPE)
+	fopts.SetStdio(frida.StdioPipe)
 
 	fmt.Printf("✔ spawn(argv={%v})\n", fopts.GetArgv())
 	pid, err := d.Spawn("/bin/sh", fopts)
