@@ -2,19 +2,16 @@ package frida
 
 /*
 #include <frida-core.h>
-#include <stdio.h>
 
+extern void deleteClosure(gpointer, GClosure*);
 extern void goMarshalCls(GClosure*, GValue*, guint, GValue*, gpointer, GValue*);
 
 static GClosure * newClosure() {
 	GClosure * closure = g_closure_new_simple(sizeof(GClosure), NULL);
 	g_closure_set_marshal(closure, (GClosureMarshal)(goMarshalCls));
+	g_closure_add_finalize_notifier(closure, NULL, (GClosureNotify)(deleteClosure));
 
 	return closure;
-}
-
-static void printer(char * dt) {
-	printf("%s\n", dt);
 }
 
 static GType getVType(GValue * val) {
@@ -34,8 +31,12 @@ import (
 	"unsafe"
 )
 
-var mappy = &sync.Map{}
-var sigs = &sync.Map{}
+var closures = &sync.Map{}
+
+//export deleteClosure
+func deleteClosure(ptr C.gpointer, closure *C.GClosure) {
+	closures.Delete(unsafe.Pointer(closure))
+}
 
 //export goMarshalCls
 func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
@@ -44,7 +45,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 	marshalData *C.GValue) {
 
 	var closure funcstack
-	cV, ok := mappy.Load(unsafe.Pointer(gclosure))
+	cV, ok := closures.Load(unsafe.Pointer(gclosure))
 	if !ok {
 		closure = funcstack{}
 	} else {
@@ -63,7 +64,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 
 	gvalues := func(params *C.GValue, count int) []C.GValue {
 		slc := []C.GValue{}
-		hdr := (*reflect.SliceHeader)((unsafe.Pointer(&slc)))
+		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&slc))
 		hdr.Cap = count
 		hdr.Len = count
 		hdr.Data = uintptr(unsafe.Pointer(params))
@@ -109,14 +110,12 @@ func connectClosure(obj unsafe.Pointer, sigName string, fn interface{}) {
 
 	// Do nothing if signal is 0 meaning not found
 	if int(sigID) != 0 {
-		c := C.g_signal_connect_closure_by_id((C.gpointer)(obj), sigID, 0, gclosure, C.gboolean(1))
-		sigs.Store(gclosure, c)
+		C.g_signal_connect_closure_by_id((C.gpointer)(obj), sigID, 0, gclosure, C.gboolean(1))
 	}
 }
 
 func newClosureFunc(fnStack funcstack) *C.GClosure {
 	cls := C.newClosure()
-	mappy.Store(unsafe.Pointer(cls), fnStack)
-
+	closures.Store(unsafe.Pointer(cls), fnStack)
 	return cls
 }
