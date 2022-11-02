@@ -12,7 +12,7 @@ func main() {
 		fmt.Print("Device not found")
 	}
 
-	fma, err := d.GetFrontmostApplication(frida.SCOPE_FULL)
+	fma, err := d.GetFrontmostApplication(frida.ScopeFull)
 	if err != nil {
 		panic(err)
 	}
