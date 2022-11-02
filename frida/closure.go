@@ -56,7 +56,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 	fnType := closure.Func.Type()
 	fnCountArgs := fnType.NumIn()
 
-	if fnCountArgs > fnCountArgs {
+	if fnCountArgs > countOfParams {
 		msg := fmt.Sprintf("too many args: have %d, max %d\n", fnCountArgs, countOfParams)
 		panic(msg)
 	}
