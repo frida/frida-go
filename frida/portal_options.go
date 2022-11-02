@@ -36,7 +36,7 @@ func (p *PortalOptions) GetACL() []string {
 
 // SetCertificate sets the certificate for the portal.
 func (p *PortalOptions) SetCertificate(certPath string) error {
-	cert, err := gTlsCertificateFromFile(certPath)
+	cert, err := gTLSCertificateFromFile(certPath)
 	if err != nil {
 		return err
 	}

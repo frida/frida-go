@@ -59,13 +59,13 @@ func (p *Portal) Stop() error {
 	return nil
 }
 
-// Kick kicks the connection with connectionId provided.
-func (p *Portal) Kick(connectionId uint) {
-	C.frida_portal_service_kick(p.portal, C.guint(connectionId))
+// Kick kicks the connection with connectionID provided.
+func (p *Portal) Kick(connectionID uint) {
+	C.frida_portal_service_kick(p.portal, C.guint(connectionID))
 }
 
-// Post posts the message to the connectionId with json string or bytes.
-func (p *Portal) Post(connectionId uint, json string, data []byte) {
+// Post posts the message to the connectionID with json string or bytes.
+func (p *Portal) Post(connectionID uint, json string, data []byte) {
 	jsonC := C.CString(json)
 	defer C.free(unsafe.Pointer(jsonC))
 
@@ -77,7 +77,7 @@ func (p *Portal) Post(connectionId uint, json string, data []byte) {
 		clean(unsafe.Pointer(g), unrefGObject)
 	})
 
-	C.frida_portal_service_post(p.portal, C.guint(connectionId), jsonC, gBytesData)
+	C.frida_portal_service_post(p.portal, C.guint(connectionID), jsonC, gBytesData)
 	runtime.KeepAlive(gBytesData)
 }
 
@@ -116,32 +116,32 @@ func (p *Portal) Broadcast(json string, data []byte) {
 	runtime.KeepAlive(gBytesData)
 }
 
-// EnumerateTags returns all the tags that connection with connectionId is tagged
+// EnumerateTags returns all the tags that connection with connectionID is tagged
 // with.
-func (p *Portal) EnumerateTags(connectionId uint) []string {
+func (p *Portal) EnumerateTags(connectionID uint) []string {
 	var length C.gint
 	tagsC := C.frida_portal_service_enumerate_tags(
 		p.portal,
-		C.guint(connectionId),
+		C.guint(connectionID),
 		&length)
 
 	return cArrayToStringSlice(tagsC, C.int(length))
 }
 
-// TagConnection tags the connection with connectionId with the tag provided.
-func (p *Portal) TagConnection(connectionId uint, tag string) {
+// TagConnection tags the connection with connectionID with the tag provided.
+func (p *Portal) TagConnection(connectionID uint, tag string) {
 	tagC := C.CString(tag)
 	defer C.free(unsafe.Pointer(tagC))
 
-	C.frida_portal_service_tag(p.portal, C.guint(connectionId), tagC)
+	C.frida_portal_service_tag(p.portal, C.guint(connectionID), tagC)
 }
 
-// UntagConnection untags the connection with connectionId with the tag provided.
-func (p *Portal) UntagConnection(connectionId uint, tag string) {
+// UntagConnection untags the connection with connectionID with the tag provided.
+func (p *Portal) UntagConnection(connectionID uint, tag string) {
 	tagC := C.CString(tag)
 	defer C.free(unsafe.Pointer(tagC))
 
-	C.frida_portal_service_untag(p.portal, C.guint(connectionId), tagC)
+	C.frida_portal_service_untag(p.portal, C.guint(connectionID), tagC)
 }
 
 func (p *Portal) On(sigName string, fn interface{}) {

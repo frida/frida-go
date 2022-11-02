@@ -42,7 +42,7 @@ func (r *RemoteDeviceOptions) GetKeepAliveInterval() int {
 
 // SetCertificate sets the certificate for the remote device.
 func (r *RemoteDeviceOptions) SetCertificate(certPath string) error {
-	cert, err := gTlsCertificateFromFile(certPath)
+	cert, err := gTLSCertificateFromFile(certPath)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (r *RemoteDeviceOptions) SetKeepAlive(interval int) {
 	C.frida_remote_device_options_set_keepalive_interval(r.opts, C.gint(interval))
 }
 
-func gTlsCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
+func gTLSCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
 	cert := C.CString(pempath)
 	defer C.free(unsafe.Pointer(cert))
 

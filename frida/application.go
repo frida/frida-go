@@ -28,12 +28,12 @@ func (a *Application) GetPid() int {
 	return int(C.frida_application_get_pid(a.application))
 }
 
-// String() returns the string representation of Application printing identifier, name and pid
+// String returns the string representation of Application printing identifier, name and pid
 func (a *Application) String() string {
 	return fmt.Sprintf("Identifier: %s Name: %s PID: %d", a.GetIdentifier(), a.GetName(), a.GetPid())
 }
 
-// Params return the application parameters, like version, path etc
+// GetParams return the application parameters, like version, path etc
 func (a *Application) GetParams() map[string]interface{} {
 	ht := C.frida_application_get_parameters(a.application)
 

@@ -104,9 +104,9 @@ func (origin ChildOrigin) String() string {
 type RelayKind int
 
 const (
-	RelayKindTurnUdp RelayKind = iota
-	RelayKindTurnTcp
-	RelayKindTurnTls
+	RelayKindTurnUDP RelayKind = iota
+	RelayKindTurnTCP
+	RelayKindTurnTLS
 )
 
 func (kind RelayKind) String() string {

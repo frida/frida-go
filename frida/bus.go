@@ -16,10 +16,7 @@ type Bus struct {
 // IsDetached returns whether the bus is detached from the device or not.
 func (b *Bus) IsDetached() bool {
 	dt := C.int(C.frida_bus_is_detached(b.bus))
-	if dt == 1 {
-		return true
-	}
-	return false
+	return dt == 1
 }
 
 // Attach attaches on the device bus.

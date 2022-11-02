@@ -73,7 +73,7 @@ func (d *DeviceManager) GetRemoteDevice() (*Device, error) {
 	return d.GetDeviceByType(DeviceTypeRemote)
 }
 
-// GetDevice will return device with id passed or an error if it can't find any.
+// GetDeviceByID will return device with id passed or an error if it can't find any.
 func (d *DeviceManager) GetDeviceByID(id string) (*Device, error) {
 	idC := C.CString(id)
 	defer C.free(unsafe.Pointer(idC))
@@ -88,7 +88,7 @@ func (d *DeviceManager) GetDeviceByID(id string) (*Device, error) {
 	return &Device{device: device}, nil
 }
 
-// GetDeviceType will return device or an error by device type specified.
+// GetDeviceByType will return device or an error by device type specified.
 func (d *DeviceManager) GetDeviceByType(devType DeviceType) (*Device, error) {
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_type_sync(d.manager,
@@ -104,14 +104,14 @@ func (d *DeviceManager) GetDeviceByType(devType DeviceType) (*Device, error) {
 
 // FindDeviceByID will try to find the device by id specified
 func (d *DeviceManager) FindDeviceByID(id string) (*Device, error) {
-	devId := C.CString(id)
-	defer C.free(unsafe.Pointer(devId))
+	devID := C.CString(id)
+	defer C.free(unsafe.Pointer(devID))
 
 	timeout := C.gint(defaultDeviceTimeout)
 
 	var err *C.GError
 	device := C.frida_device_manager_find_device_by_id_sync(d.manager,
-		devId,
+		devID,
 		timeout,
 		nil,
 		&err)
@@ -139,7 +139,7 @@ func (d *DeviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
 	return &Device{device: device}, nil
 }
 
-// Add remote address available at address with remoteOpts populated
+// AddRemoteDevice add a remote device from the provided address with remoteOpts populated
 func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDeviceOptions) (*Device, error) {
 	addressC := C.CString(address)
 	defer C.free(unsafe.Pointer(addressC))
@@ -153,7 +153,7 @@ func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDevice
 	return &Device{device: device}, nil
 }
 
-// RemoveRemoteDevices removes remote device available at address
+// RemoveRemoteDevice removes remote device available at address
 func (d *DeviceManager) RemoveRemoteDevice(address string) error {
 	addressC := C.CString(address)
 	defer C.free(unsafe.Pointer(addressC))

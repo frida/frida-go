@@ -10,10 +10,10 @@ type SessionOptions struct {
 
 // NewSessionOptions create new SessionOptions with the realm and
 // timeout to persist provided
-func NewSessionOptions(realm Realm, persist_timeout uint) *SessionOptions {
+func NewSessionOptions(realm Realm, persistTimeout uint) *SessionOptions {
 	opts := C.frida_session_options_new()
 	C.frida_session_options_set_realm(opts, C.FridaRealm(realm))
-	C.frida_session_options_set_persist_timeout(opts, C.guint(persist_timeout))
+	C.frida_session_options_set_persist_timeout(opts, C.guint(persistTimeout))
 
 	return &SessionOptions{opts}
 }
