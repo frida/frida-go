@@ -18,7 +18,7 @@ var sc = `Interceptor.attach(Module.getExportByName(null, 'open'), {
   });`
 
 func main() {
-	d := frida.GetLocalDevice()
+	d := frida.LocalDevice()
 
 	instrument := func(pid int) {
 		fmt.Printf("✔ attach(pid={%d})\n", pid)
@@ -55,13 +55,13 @@ func main() {
 
 	d.On("child-added", func(child *frida.Child) {
 		fmt.Printf("⚡ child_added: {%d}, parent_pid: {%d}\n",
-			child.GetPid(),
-			child.GetPPid())
-		instrument(int(child.GetPid()))
+			child.PID(),
+			child.PPID())
+		instrument(int(child.PID()))
 	})
 
 	d.On("child-removed", func(child *frida.Child) {
-		fmt.Printf("⚡ child_removed: {%v}\n", child.GetPid())
+		fmt.Printf("⚡ child_removed: {%v}\n", child.PID())
 	})
 
 	d.On("output", func(pid int, fd int, data []byte) {
@@ -79,7 +79,7 @@ func main() {
 	})
 	fopts.SetStdio(frida.StdioPipe)
 
-	fmt.Printf("✔ spawn(argv={%v})\n", fopts.GetArgv())
+	fmt.Printf("✔ spawn(argv={%v})\n", fopts.Argv())
 	pid, err := d.Spawn("/bin/sh", fopts)
 	if err != nil {
 		panic(err)

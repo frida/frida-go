@@ -41,22 +41,22 @@ func NewRelay(address, username, password string, kind RelayKind) *Relay {
 	return &Relay{rly}
 }
 
-// GetAddress returns the address of the relay.
-func (relay *Relay) GetAddress() string {
+// Address returns the address of the relay.
+func (relay *Relay) Address() string {
 	return C.GoString(C.frida_relay_get_address(relay.r))
 }
 
-// GetUsername returns the username for the relay.
-func (relay *Relay) GetUsername() string {
+// Username returns the username for the relay.
+func (relay *Relay) Username() string {
 	return C.GoString(C.frida_relay_get_username(relay.r))
 }
 
-// GetPassword returns the password for the relay.
-func (relay *Relay) GetPassword() string {
+// Password returns the password for the relay.
+func (relay *Relay) Password() string {
 	return C.GoString(C.frida_relay_get_password(relay.r))
 }
 
-// GetRelayKind returns the kind of relay.
-func (relay *Relay) GetRelayKind() RelayKind {
+// RelayKind returns the kind of relay.
+func (relay *Relay) RelayKind() RelayKind {
 	return RelayKind(C.frida_relay_get_kind(relay.r))
 }

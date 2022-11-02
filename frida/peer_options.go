@@ -16,8 +16,8 @@ func NewPeerOptions() *PeerOptions {
 	return &PeerOptions{opts}
 }
 
-// GetStunServer returns the stun server for peer options.
-func (p *PeerOptions) GetStunServer() string {
+// StunServer returns the stun server for peer options.
+func (p *PeerOptions) StunServer() string {
 	return C.GoString(C.frida_peer_options_get_stun_server(p.opts))
 }
 

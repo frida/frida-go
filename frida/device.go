@@ -15,40 +15,40 @@ type Device struct {
 	device *C.FridaDevice
 }
 
-// GetID will return the ID of the device.
-func (d *Device) GetID() string {
+// ID will return the ID of the device.
+func (d *Device) ID() string {
 	return C.GoString(C.frida_device_get_id(d.device))
 }
 
-// GetName will return the name of the device.
-func (d *Device) GetName() string {
+// Name will return the name of the device.
+func (d *Device) Name() string {
 	return C.GoString(C.frida_device_get_name(d.device))
 }
 
-// GetDeviceIcon will return the device icon.
-func (d *Device) GetDeviceIcon() *C.GVariant {
+// DeviceIcon will return the device icon.
+func (d *Device) DeviceIcon() *C.GVariant {
 	icon := C.frida_device_get_icon(d.device)
 	dt := gPointerToGo((C.gpointer)(icon))
 	_ = dt
 	return icon
 }
 
-// GetDeviceType returns type of the device.
-func (d *Device) GetDeviceType() DeviceType {
+// DeviceType returns type of the device.
+func (d *Device) DeviceType() DeviceType {
 	fdt := C.frida_device_get_dtype(d.device)
 	return DeviceType(fdt)
 }
 
-// GetBus returns device bus.
-func (d *Device) GetBus() *Bus {
+// Bus returns device bus.
+func (d *Device) Bus() *Bus {
 	bus := C.frida_device_get_bus(d.device)
 	return &Bus{
 		bus: bus,
 	}
 }
 
-// GetManager returns device manager for the device.
-func (d *Device) GetManager() *DeviceManager {
+// Manager returns device manager for the device.
+func (d *Device) Manager() *DeviceManager {
 	mgr := C.frida_device_get_manager(d.device)
 	return &DeviceManager{mgr}
 }
@@ -72,9 +72,9 @@ func (d *Device) Params() (map[string]interface{}, error) {
 	return params, nil
 }
 
-// GetFrontmostApplication will return the frontmost application or the application in focus
+// FrontmostApplication will return the frontmost application or the application in focus
 // on the device.
-func (d *Device) GetFrontmostApplication(scope Scope) (*Application, error) {
+func (d *Device) FrontmostApplication(scope Scope) (*Application, error) {
 	var err *C.GError
 	app := &Application{}
 
@@ -121,14 +121,14 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Appli
 	}
 
 	sort.Slice(apps, func(i, j int) bool {
-		return apps[i].GetPid() > apps[j].GetPid()
+		return apps[i].PID() > apps[j].PID()
 	})
 
 	return apps, nil
 }
 
-// GetProcessByPid returns the process by passed pid.
-func (d *Device) GetProcessByPid(pid int, scope Scope) (*Process, error) {
+// ProcessByPID returns the process by passed pid.
+func (d *Device) ProcessByPID(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
@@ -141,8 +141,8 @@ func (d *Device) GetProcessByPid(pid int, scope Scope) (*Process, error) {
 	return &Process{proc}, nil
 }
 
-// GetProcessByName returns the process by passed name.
-func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
+// ProcessByName returns the process by passed name.
+func (d *Device) ProcessByName(name string, scope Scope) (*Process, error) {
 	nameC := C.CString(name)
 	defer C.free(unsafe.Pointer(nameC))
 
@@ -158,8 +158,8 @@ func (d *Device) GetProcessByName(name string, scope Scope) (*Process, error) {
 	return &Process{proc}, nil
 }
 
-// FindProcessByPid will try to find the process with given pid.
-func (d *Device) FindProcessByPid(pid int, scope Scope) (*Process, error) {
+// FindProcessByPID will try to find the process with given pid.
+func (d *Device) FindProcessByPID(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
@@ -334,11 +334,11 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 	var pid int
 	switch v := reflect.ValueOf(val); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(val.(string), ScopeMinimal)
+		proc, err := d.ProcessByName(val.(string), ScopeMinimal)
 		if err != nil {
 			return nil, err
 		}
-		pid = proc.GetPid()
+		pid = proc.PID()
 	case reflect.Int:
 		pid = val.(int)
 	default:
@@ -365,11 +365,11 @@ func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data st
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(target.(string), ScopeMinimal)
+		proc, err := d.ProcessByName(target.(string), ScopeMinimal)
 		if err != nil {
 			return 0, err
 		}
-		pid = proc.GetPid()
+		pid = proc.PID()
 	case reflect.Int:
 		pid = target.(int)
 	default:
@@ -419,11 +419,11 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
-		proc, err := d.GetProcessByName(target.(string), ScopeMinimal)
+		proc, err := d.ProcessByName(target.(string), ScopeMinimal)
 		if err != nil {
 			return 0, err
 		}
-		pid = proc.GetPid()
+		pid = proc.PID()
 	case reflect.Int:
 		pid = target.(int)
 	default:
@@ -484,8 +484,8 @@ func (d *Device) OpenChannel(address string) (*IOStream, error) {
 	return NewIOStream(stream), nil
 }
 
-// GetHostSession returns device host session.
-func (d *Device) GetHostSession() (*HostSession, error) {
+// HostSession returns device host session.
+func (d *Device) HostSession() (*HostSession, error) {
 	var err *C.GError
 	hs := C.frida_device_get_host_session_sync(d.device, nil, &err)
 	if err != nil {

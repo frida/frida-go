@@ -27,8 +27,8 @@ func (s *SpawnOptions) SetArgv(argv []string) {
 	C.frida_spawn_options_set_argv(s.opts, arr, sz)
 }
 
-// GetArgv returns argv of the spawn.
-func (s *SpawnOptions) GetArgv() []string {
+// Argv returns argv of the spawn.
+func (s *SpawnOptions) Argv() []string {
 	var count C.gint
 	argvC := C.frida_spawn_options_get_argv(s.opts, &count)
 
@@ -49,8 +49,8 @@ func (s *SpawnOptions) SetEnvp(envp map[string]string) {
 	C.frida_spawn_options_set_envp(s.opts, arr, sz)
 }
 
-// GetEnvp returns envp of the spawn.
-func (s *SpawnOptions) GetEnvp() []string {
+// Envp returns envp of the spawn.
+func (s *SpawnOptions) Envp() []string {
 	var count C.gint
 	envpC := C.frida_spawn_options_get_argv(s.opts, &count)
 
@@ -71,8 +71,8 @@ func (s *SpawnOptions) SetEnv(env map[string]string) {
 	C.frida_spawn_options_set_env(s.opts, arr, sz)
 }
 
-// GetEnv returns env of the spawn.
-func (s *SpawnOptions) GetEnv() []string {
+// Env returns env of the spawn.
+func (s *SpawnOptions) Env() []string {
 	var count C.gint
 	envpC := C.frida_spawn_options_get_env(s.opts, &count)
 
@@ -89,8 +89,8 @@ func (s *SpawnOptions) SetCwd(cwd string) {
 	C.frida_spawn_options_set_cwd(s.opts, cwdC)
 }
 
-// GetCwd returns current working directory (CWD) of the spawn.
-func (s *SpawnOptions) GetCwd() string {
+// Cwd returns current working directory (CWD) of the spawn.
+func (s *SpawnOptions) Cwd() string {
 	return C.GoString(C.frida_spawn_options_get_cwd(s.opts))
 }
 
@@ -99,13 +99,13 @@ func (s *SpawnOptions) SetStdio(stdio Stdio) {
 	C.frida_spawn_options_set_stdio(s.opts, C.FridaStdio(stdio))
 }
 
-// GetStdio returns spawns stdio.
-func (s *SpawnOptions) GetStdio() Stdio {
+// Stdio returns spawns stdio.
+func (s *SpawnOptions) Stdio() Stdio {
 	return Stdio(int(C.frida_spawn_options_get_stdio(s.opts)))
 }
 
-// GetAux returns aux of the spawn.
-func (s *SpawnOptions) GetAux() map[string]interface{} {
+// Aux returns aux of the spawn.
+func (s *SpawnOptions) Aux() map[string]interface{} {
 	ht := C.frida_spawn_options_get_aux(s.opts)
 	aux := gHashTableToMap(ht)
 	return aux

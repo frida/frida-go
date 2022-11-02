@@ -16,8 +16,8 @@ func main() {
 	fmt.Printf("[*] Frida version: %s\n", frida.Version())
 	fmt.Println("[*] Devices: ")
 	for _, device := range devices {
-		fmt.Printf("[*] Params for: %s (%s)\n", device.GetName(), device.GetID())
-		if device.GetID() != "socket" {
+		fmt.Printf("[*] Params for: %s (%s)\n", device.Name(), device.ID())
+		if device.ID() != "socket" {
 			params, err := device.Params()
 			if err != nil {
 				panic(err)

@@ -18,13 +18,13 @@ func NewSessionOptions(realm Realm, persistTimeout uint) *SessionOptions {
 	return &SessionOptions{opts}
 }
 
-// GetRealm returns the realm of the options
-func (s *SessionOptions) GetRealm() Realm {
+// Realm returns the realm of the options
+func (s *SessionOptions) Realm() Realm {
 	rlm := C.frida_session_options_get_realm(s.opts)
 	return Realm(rlm)
 }
 
-// GetPersistTimeout returns the persist timeout of the script.s
-func (s *SessionOptions) GetPersistTimeout() int {
+// PersistTimeout returns the persist timeout of the script.s
+func (s *SessionOptions) PersistTimeout() int {
 	return int(C.frida_session_options_get_persist_timeout(s.opts))
 }

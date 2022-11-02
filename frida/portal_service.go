@@ -21,20 +21,20 @@ func NewPortal(clusterParams, controlParams *EndpointParameters) *Portal {
 	}
 }
 
-// GetDevice returns portal device.
-func (p *Portal) GetDevice() *Device {
+// Device returns portal device.
+func (p *Portal) Device() *Device {
 	dev := C.frida_portal_service_get_device(p.portal)
 	return &Device{dev}
 }
 
-// GetClusterParams returns the cluster parameters for the portal.
-func (p *Portal) GetClusterParams() *EndpointParameters {
+// ClusterParams returns the cluster parameters for the portal.
+func (p *Portal) ClusterParams() *EndpointParameters {
 	params := C.frida_portal_service_get_cluster_params(p.portal)
 	return &EndpointParameters{params}
 }
 
-// GetControlParams returns the control parameters for the portal.
-func (p *Portal) GetControlParams() *EndpointParameters {
+// ControlParams returns the control parameters for the portal.
+func (p *Portal) ControlParams() *EndpointParameters {
 	params := C.frida_portal_service_get_control_params(p.portal)
 	return &EndpointParameters{params}
 }

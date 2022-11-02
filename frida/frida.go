@@ -41,18 +41,18 @@ func getDeviceManager() *DeviceManager {
 	return v.(*DeviceManager)
 }
 
-func GetLocalDevice() *Device {
+func LocalDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
 	if !ok {
-		dev, _ := mgr.GetDeviceByType(DeviceTypeLocal)
+		dev, _ := mgr.DeviceByType(DeviceTypeLocal)
 		data.Store("localDevice", dev)
 		return dev
 	}
 	return v.(*Device)
 }
 
-func GetUSBDevice() *Device {
+func USBDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("usbDevice")
 	if !ok {
@@ -61,7 +61,7 @@ func GetUSBDevice() *Device {
 			mgr.EnumerateDevices()
 			data.Store("enumeratedDevices", true)
 		}
-		dev, err := mgr.GetDeviceByType(DeviceTypeUsb)
+		dev, err := mgr.DeviceByType(DeviceTypeUsb)
 		if err != nil {
 			return nil
 		}
@@ -72,6 +72,6 @@ func GetUSBDevice() *Device {
 }
 
 func Attach(val interface{}) (*Session, error) {
-	dev := GetLocalDevice()
+	dev := LocalDevice()
 	return dev.Attach(val, nil)
 }

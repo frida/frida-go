@@ -9,28 +9,28 @@ type Crash struct {
 	crash *C.FridaCrash
 }
 
-// GetPid returns the process identifier oc.crashed application
-func (c *Crash) GetPid() int {
+// PID returns the process identifier oc.crashed application
+func (c *Crash) PID() int {
 	return int(C.frida_crash_get_pid(c.crash))
 }
 
-// GetProcessName returns the name of the process that crashed
-func (c *Crash) GetProcessName() string {
+// ProcessName returns the name of the process that crashed
+func (c *Crash) ProcessName() string {
 	return C.GoString(C.frida_crash_get_process_name(c.crash))
 }
 
-// GetSummary returns the summary of the crash
-func (c *Crash) GetSummary() string {
+// Summary returns the summary of the crash
+func (c *Crash) Summary() string {
 	return C.GoString(C.frida_crash_get_summary(c.crash))
 }
 
-// GetReport returns the report of the crash
-func (c *Crash) GetReport() string {
+// Report returns the report of the crash
+func (c *Crash) Report() string {
 	return C.GoString(C.frida_crash_get_report(c.crash))
 }
 
-// GetParams returns the parameters of the crash.
-func (c *Crash) GetParams() map[string]interface{} {
+// Params returns the parameters of the crash.
+func (c *Crash) Params() map[string]interface{} {
 	ht := C.frida_crash_get_parameters(c.crash)
 	params := gHashTableToMap(ht)
 	return params

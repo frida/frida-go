@@ -107,11 +107,11 @@ func main() {
 	})
 
 	portal.On("node_joined", func(connId uint, app *frida.Application) {
-		fmt.Printf("[*] Node joined: %d with app: %s\n", connId, app.GetName())
+		fmt.Printf("[*] Node joined: %d with app: %s\n", connId, app.Name())
 	})
 
 	portal.On("node_left", func(connId uint, app *frida.Application) {
-		fmt.Printf("[*] Node left: %d with app: %s\n", connId, app.GetName())
+		fmt.Printf("[*] Node left: %d with app: %s\n", connId, app.Name())
 	})
 
 	portal.On("controller_connected", func(connId uint, addr *frida.Address) {

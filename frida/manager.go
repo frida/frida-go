@@ -6,7 +6,7 @@ import "C"
 import "unsafe"
 
 // DeviceManager is the main structure which holds on devices available to Frida
-// Single instance of the DeviceManager is created when you call frida.Attach() or frida.GetLocalDevice().
+// Single instance of the DeviceManager is created when you call frida.Attach() or frida.LocalDevice().
 type DeviceManager struct {
 	manager *C.FridaDeviceManager
 }
@@ -58,23 +58,23 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 	return devices, nil
 }
 
-// GetLocalDevice returns the device with type DeviceTypeLocal.
-func (d *DeviceManager) GetLocalDevice() (*Device, error) {
-	return d.GetDeviceByType(DeviceTypeLocal)
+// LocalDevice returns the device with type DeviceTypeLocal.
+func (d *DeviceManager) LocalDevice() (*Device, error) {
+	return d.DeviceByType(DeviceTypeLocal)
 }
 
-// GetUSBDevice returns the device with type DeviceTypeUsb.
-func (d *DeviceManager) GetUSBDevice() (*Device, error) {
-	return d.GetDeviceByType(DeviceTypeUsb)
+// USBDevice returns the device with type DeviceTypeUsb.
+func (d *DeviceManager) USBDevice() (*Device, error) {
+	return d.DeviceByType(DeviceTypeUsb)
 }
 
-// GetRemoteDevice returns the device with type DeviceTypeRemote.
-func (d *DeviceManager) GetRemoteDevice() (*Device, error) {
-	return d.GetDeviceByType(DeviceTypeRemote)
+// RemoteDevice returns the device with type DeviceTypeRemote.
+func (d *DeviceManager) RemoteDevice() (*Device, error) {
+	return d.DeviceByType(DeviceTypeRemote)
 }
 
-// GetDeviceByID will return device with id passed or an error if it can't find any.
-func (d *DeviceManager) GetDeviceByID(id string) (*Device, error) {
+// DeviceByID will return device with id passed or an error if it can't find any.
+func (d *DeviceManager) DeviceByID(id string) (*Device, error) {
 	idC := C.CString(id)
 	defer C.free(unsafe.Pointer(idC))
 
@@ -88,8 +88,8 @@ func (d *DeviceManager) GetDeviceByID(id string) (*Device, error) {
 	return &Device{device: device}, nil
 }
 
-// GetDeviceByType will return device or an error by device type specified.
-func (d *DeviceManager) GetDeviceByType(devType DeviceType) (*Device, error) {
+// DeviceByType will return device or an error by device type specified.
+func (d *DeviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_type_sync(d.manager,
 		C.FridaDeviceType(devType),

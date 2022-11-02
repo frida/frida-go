@@ -22,8 +22,8 @@ func NewFileMonitor(path string) *FileMonitor {
 	}
 }
 
-// GetPath returns the path of the monitored file.
-func (mon *FileMonitor) GetPath() string {
+// Path returns the path of the monitored file.
+func (mon *FileMonitor) Path() string {
 	return C.GoString(C.frida_file_monitor_get_path(mon.fm))
 }
 

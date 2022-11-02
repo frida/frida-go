@@ -142,7 +142,7 @@ func (s *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (
 		opts = NewScriptOptions("frida-go")
 	}
 
-	if opts.GetName() == "" {
+	if opts.Name() == "" {
 		opts.SetName("frida-go")
 	}
 

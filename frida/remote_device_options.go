@@ -20,23 +20,23 @@ func NewRemoteDeviceOptions() *RemoteDeviceOptions {
 	}
 }
 
-// GetCertificate returns the certificate for the remote device options.
-func (r *RemoteDeviceOptions) GetCertificate() *C.GTlsCertificate {
+// Certificate returns the certificate for the remote device options.
+func (r *RemoteDeviceOptions) Certificate() *C.GTlsCertificate {
 	return C.frida_remote_device_options_get_certificate(r.opts)
 }
 
-// GetOrigin returns the origin for the remote device options.
-func (r *RemoteDeviceOptions) GetOrigin() string {
+// Origin returns the origin for the remote device options.
+func (r *RemoteDeviceOptions) Origin() string {
 	return C.GoString(C.frida_remote_device_options_get_origin(r.opts))
 }
 
-// GetToken returns the token for the remote device options.
-func (r *RemoteDeviceOptions) GetToken() string {
+// Token returns the token for the remote device options.
+func (r *RemoteDeviceOptions) Token() string {
 	return C.GoString(C.frida_remote_device_options_get_token(r.opts))
 }
 
-// GetKeepAliveInterval returns the keepalive interval for the remote device options.
-func (r *RemoteDeviceOptions) GetKeepAliveInterval() int {
+// KeepAliveInterval returns the keepalive interval for the remote device options.
+func (r *RemoteDeviceOptions) KeepAliveInterval() int {
 	return int(C.frida_remote_device_options_get_keepalive_interval(r.opts))
 }
 

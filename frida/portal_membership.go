@@ -8,8 +8,8 @@ type PortalMembership struct {
 	mem *C.FridaPortalMembership
 }
 
-// GetID returns the ID of the membership
-func (p *PortalMembership) GetID() uint {
+// ID returns the ID of the membership
+func (p *PortalMembership) ID() uint {
 	return uint(C.frida_portal_membership_get_id(p.mem))
 }
 
