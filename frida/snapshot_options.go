@@ -23,12 +23,12 @@ func NewSnapshotOptions(warmupScript string, rt ScriptRuntime) *SnapshotOptions 
 	}
 }
 
-// GetWarmupScript returns the warmup script used to create the script options.
-func (s *SnapshotOptions) GetWarmupScript() string {
+// WarmupScript returns the warmup script used to create the script options.
+func (s *SnapshotOptions) WarmupScript() string {
 	return C.GoString(C.frida_snapshot_options_get_warmup_script(s.opts))
 }
 
-// GetRuntime returns the runtime used to create the script options.
-func (s *SnapshotOptions) GetRuntime() ScriptRuntime {
+// Runtime returns the runtime used to create the script options.
+func (s *SnapshotOptions) Runtime() ScriptRuntime {
 	return ScriptRuntime(int(C.frida_snapshot_options_get_runtime(s.opts)))
 }

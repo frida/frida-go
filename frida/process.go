@@ -8,17 +8,17 @@ type Process struct {
 	proc *C.FridaProcess
 }
 
-// GetPid returns the PID of FridaProcess
-func (p *Process) GetPid() int {
+// PID returns the PID of FridaProcess
+func (p *Process) PID() int {
 	return int(C.frida_process_get_pid(p.proc))
 }
 
-// GetName returns the name of FridaProcess
-func (p *Process) GetName() string {
+// Name returns the name of FridaProcess
+func (p *Process) Name() string {
 	return C.GoString(C.frida_process_get_name(p.proc))
 }
 
-func (p *Process) GetParams() map[string]interface{} {
+func (p *Process) Params() map[string]interface{} {
 	ht := C.frida_process_get_parameters(p.proc)
 	params := gHashTableToMap(ht)
 	return params

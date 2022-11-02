@@ -26,7 +26,7 @@ func main() {
 
 	target := os.Args[1]
 
-	d := frida.GetUSBDevice()
+	d := frida.USBDevice()
 	session, err := d.Attach(target, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error attaching to target: %v\n", err)

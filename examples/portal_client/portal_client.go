@@ -36,10 +36,10 @@ func main() {
 	}
 
 	for _, proc := range procs {
-		fmt.Printf("[*] Process: %s => %d\n", proc.GetName(), proc.GetPid())
+		fmt.Printf("[*] Process: %s => %d\n", proc.Name(), proc.PID())
 	}
 
-	bus := dev.GetBus()
+	bus := dev.Bus()
 	bus.On("message", func(msg string) {
 		var c cmd
 		json.Unmarshal([]byte(msg), &c)

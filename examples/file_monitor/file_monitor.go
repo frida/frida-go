@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	mon := frida.NewFileMonitor("/path/to/script")
+	mon := frida.NewFileMonitor("/tmp/test.txt")
 	if err := mon.Enable(); err != nil {
 		panic(err)
 	}
@@ -19,7 +19,7 @@ func main() {
 		fmt.Printf("[*] File %s has changed (%s)\n", changedFile, changeType)
 	})
 
-	fmt.Printf("[*] Monitoring path: %s\n", mon.GetPath())
+	fmt.Printf("[*] Monitoring path: %s\n", mon.Path())
 
 	t := time.NewTimer(20 * time.Second)
 	<-t.C

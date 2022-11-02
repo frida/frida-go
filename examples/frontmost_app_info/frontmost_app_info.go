@@ -7,20 +7,20 @@ import (
 )
 
 func main() {
-	d := frida.GetUSBDevice()
+	d := frida.USBDevice()
 	if d == nil {
 		fmt.Print("Device not found")
 	}
 
-	fma, err := d.GetFrontmostApplication(frida.ScopeFull)
+	fma, err := d.FrontmostApplication(frida.ScopeFull)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println("[*] Frontmost application")
-	fmt.Printf("[*] Name: %s\n", fma.GetName())
-	fmt.Printf("[*] Identifier: %s\n", fma.GetIdentifier())
-	fmt.Printf("[*] PID: %d\n", fma.GetPid())
+	fmt.Printf("[*] Name: %s\n", fma.Name())
+	fmt.Printf("[*] Identifier: %s\n", fma.Identifier())
+	fmt.Printf("[*] PID: %d\n", fma.PID())
 	fmt.Printf("[*] Params: \n")
 	p := fma.GetParams()
 

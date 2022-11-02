@@ -10,7 +10,7 @@ import (
 
 func main() {
 	r := bufio.NewReader(os.Stdin)
-	dev := frida.GetUSBDevice()
+	dev := frida.USBDevice()
 	channel, err := dev.OpenChannel("tcp:8080")
 	if err != nil {
 		panic(err)

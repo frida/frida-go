@@ -17,18 +17,18 @@ func NewPortalOptions() *PortalOptions {
 	}
 }
 
-// GetCertificate returns the tls certificate for portal options.
-func (p *PortalOptions) GetCertificate() *C.GTlsCertificate {
+// Certificate returns the tls certificate for portal options.
+func (p *PortalOptions) Certificate() *C.GTlsCertificate {
 	return C.frida_portal_options_get_certificate(p.opts)
 }
 
-// GetToken returns the token for the portal.
-func (p *PortalOptions) GetToken() string {
+// Token returns the token for the portal.
+func (p *PortalOptions) Token() string {
 	return C.GoString(C.frida_portal_options_get_token(p.opts))
 }
 
-// GetACL returns the acls for the portal.
-func (p *PortalOptions) GetACL() []string {
+// ACL returns the acls for the portal.
+func (p *PortalOptions) ACL() []string {
 	var sz C.gint
 	arr := C.frida_portal_options_get_acl(p.opts, &sz)
 	return cArrayToStringSlice(arr, C.int(sz))

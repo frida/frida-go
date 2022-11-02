@@ -56,21 +56,21 @@ func (s *ScriptOptions) SetRuntime(rt ScriptRuntime) {
 	C.frida_script_options_set_runtime(s.opts, C.FridaScriptRuntime(rt))
 }
 
-// GetName returns the name for the script.
-func (s *ScriptOptions) GetName() string {
+// Name returns the name for the script.
+func (s *ScriptOptions) Name() string {
 	return C.GoString(C.frida_script_options_get_name(s.opts))
 }
 
-// GetSnapshot returns the snapshot for the script.
-func (s *ScriptOptions) GetSnapshot() []byte {
+// Snapshot returns the snapshot for the script.
+func (s *ScriptOptions) Snapshot() []byte {
 	snap := C.frida_script_options_get_snapshot(s.opts)
 	bts := getGBytes(snap)
 	clean(unsafe.Pointer(snap), unrefGObject)
 	return bts
 }
 
-// GetSnapshotTransport returns the transport for the script.
-func (s *ScriptOptions) GetSnapshotTransport() SnapshotTransport {
+// SnapshotTransport returns the transport for the script.
+func (s *ScriptOptions) SnapshotTransport() SnapshotTransport {
 	tr := C.frida_script_options_get_snapshot_transport(s.opts)
 	return SnapshotTransport(tr)
 }

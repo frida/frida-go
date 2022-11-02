@@ -9,41 +9,41 @@ type Child struct {
 	child *C.FridaChild
 }
 
-// GetPid returns the process id of the child.
-func (f *Child) GetPid() uint {
+// PID returns the process id of the child.
+func (f *Child) PID() uint {
 	return uint(C.frida_child_get_pid(f.child))
 }
 
-// GetPPid returns the parent process id of the child.
-func (f *Child) GetPPid() uint {
+// PPID returns the parent process id of the child.
+func (f *Child) PPID() uint {
 	return uint(C.frida_child_get_parent_pid(f.child))
 }
 
-// GetOrigin returns the origin of the child.
-func (f *Child) GetOrigin() ChildOrigin {
+// Origin returns the origin of the child.
+func (f *Child) Origin() ChildOrigin {
 	return ChildOrigin(C.frida_child_get_origin(f.child))
 }
 
-// GetIdentifier returns string identifier of the child.
-func (f *Child) GetIdentifier() string {
+// Identifier returns string identifier of the child.
+func (f *Child) Identifier() string {
 	return C.GoString(C.frida_child_get_identifier(f.child))
 }
 
-// GetPath returns the path of the child.
-func (f *Child) GetPath() string {
+// Path returns the path of the child.
+func (f *Child) Path() string {
 	return C.GoString(C.frida_child_get_path(f.child))
 }
 
-// GetArgv returns argv passed to the child.
-func (f *Child) GetArgv() []string {
+// Argv returns argv passed to the child.
+func (f *Child) Argv() []string {
 	var length C.gint
 	arr := C.frida_child_get_argv(f.child, &length)
 
 	return cArrayToStringSlice(arr, C.int(length))
 }
 
-// GetEnvp returns envp passed to the child.
-func (f *Child) GetEnvp() []string {
+// Envp returns envp passed to the child.
+func (f *Child) Envp() []string {
 	var length C.gint
 	arr := C.frida_child_get_envp(f.child, &length)
 

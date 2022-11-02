@@ -75,7 +75,7 @@ func main() {
 		fmt.Println("[*] Found device with id:", d.ID())
 	}
 
-	localDev, err := mgr.GetLocalDevice()
+	localDev, err := mgr.LocalDevice()
 	if err != nil {
 		fmt.Println("Could not get local device: ", err)
 		// Let's exit here because there is no point to do anything with nonexistent device

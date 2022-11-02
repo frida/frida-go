@@ -99,28 +99,28 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	return &EndpointParameters{ret}, nil
 }
 
-// GetAddress returns the address of the endpoint parameters.
-func (e *EndpointParameters) GetAddress() string {
+// Address returns the address of the endpoint parameters.
+func (e *EndpointParameters) Address() string {
 	return C.GoString(C.frida_endpoint_parameters_get_address(e.params))
 }
 
-// GetPort returns the port of the endpoint parameters.
-func (e *EndpointParameters) GetPort() uint16 {
+// Port returns the port of the endpoint parameters.
+func (e *EndpointParameters) Port() uint16 {
 	return uint16(C.frida_endpoint_parameters_get_port(e.params))
 }
 
-// GetCertificate returns the certificate of the endpoint parameters.
-func (e *EndpointParameters) GetCertificate() *C.GTlsCertificate {
+// Certificate returns the certificate of the endpoint parameters.
+func (e *EndpointParameters) Certificate() *C.GTlsCertificate {
 	return C.frida_endpoint_parameters_get_certificate(e.params)
 }
 
-// GetOrigin returns the origin of the endpoint parameters.
-func (e *EndpointParameters) GetOrigin() string {
+// Origin returns the origin of the endpoint parameters.
+func (e *EndpointParameters) Origin() string {
 	return C.GoString(C.frida_endpoint_parameters_get_origin(e.params))
 }
 
-// GetAssetRoot returns the asset root directory.
-func (e *EndpointParameters) GetAssetRoot() string {
+// AssetRoot returns the asset root directory.
+func (e *EndpointParameters) AssetRoot() string {
 	assetRoot := C.frida_endpoint_parameters_get_asset_root(e.params)
 	pathC := C.g_file_get_path(assetRoot)
 	return C.GoString(pathC)
