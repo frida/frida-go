@@ -77,7 +77,7 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 	if params.Certificate != "" {
 		crt, err := gTlsCertificateFromFile(params.Certificate)
 		if err != nil {
-			return nil, &FridaError{err}
+			return nil, err
 		}
 		cert = crt
 	}
@@ -111,7 +111,7 @@ func (e *EndpointParameters) GetCertificate() *C.GTlsCertificate {
 
 // GetOrigin returns the origin of the endpoint parameters.
 func (e *EndpointParameters) GetOrigin() string {
-	return C.GoString(C.frida_endpoint_parameters_get_certificate(e.params))
+	return C.GoString(C.frida_endpoint_parameters_get_origin(e.params))
 }
 
 // SetAssetRoot sets asset root directory for the portal.
