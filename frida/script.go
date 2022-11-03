@@ -5,7 +5,6 @@ import "C"
 import (
 	"encoding/json"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 	"unsafe"
@@ -32,7 +31,7 @@ func (f *Script) Load() error {
 	var err *C.GError
 	C.frida_script_load_sync(f.sc, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -42,7 +41,7 @@ func (f *Script) Unload() error {
 	var err *C.GError
 	C.frida_script_unload_sync(f.sc, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -52,7 +51,7 @@ func (f *Script) Eternalize() error {
 	var err *C.GError
 	C.frida_script_eternalize_sync(f.sc, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -62,16 +61,9 @@ func (f *Script) Post(jsonString string, data []byte) {
 	jsonStringC := C.CString(jsonString)
 	defer C.free(unsafe.Pointer(jsonStringC))
 
-	arr, len := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-
+	gBytesData := goBytesToGBytes(data)
 	C.frida_script_post(f.sc, jsonStringC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 }
 
 // EnableDebugger function enables debugging on the port specified
@@ -79,7 +71,7 @@ func (f *Script) EnableDebugger(port uint16) error {
 	var err *C.GError
 	C.frida_script_enable_debugger_sync(f.sc, C.guint16(port), nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 
 	return nil
@@ -90,7 +82,7 @@ func (f *Script) DisableDebugger() error {
 	var err *C.GError
 	C.frida_script_disable_debugger_sync(f.sc, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }

@@ -36,9 +36,7 @@ func (a *Application) String() string {
 // Params return the application parameters, like version, path etc
 func (a *Application) Params() map[string]interface{} {
 	ht := C.frida_application_get_parameters(a.application)
-
 	params := gHashTableToMap(ht)
-
 	return params
 }
 

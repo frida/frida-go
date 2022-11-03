@@ -8,12 +8,12 @@ import (
 	"unsafe"
 )
 
-// FridaError holds a pointer to GError
-type FridaError struct {
+// FError holds a pointer to GError
+type FError struct {
 	error *C.GError
 }
 
-func (f *FridaError) Error() string {
+func (f *FError) Error() string {
 	defer clean(unsafe.Pointer(f.error), unrefGError)
-	return fmt.Sprintf("FridaError: %s", C.GoString(f.error.message))
+	return fmt.Sprintf("FError: %s", C.GoString(f.error.message))
 }

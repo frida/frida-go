@@ -22,7 +22,7 @@ func (s *Session) Detach() error {
 	var err *C.GError
 	C.frida_session_detach_sync(s.s, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -32,7 +32,7 @@ func (s *Session) Resume() error {
 	var err *C.GError
 	C.frida_session_resume_sync(s.s, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func (s *Session) EnableChildGating() error {
 	var err *C.GError
 	C.frida_session_enable_child_gating_sync(s.s, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 
 	return nil
@@ -53,7 +53,7 @@ func (s *Session) DisableChildGating() error {
 	var err *C.GError
 	C.frida_session_disable_child_gating_sync(s.s, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 
 	return nil
@@ -71,6 +71,7 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 	if opts == nil {
 		opts = NewScriptOptions("frida-go")
 	}
+	defer clean(unsafe.Pointer(opts.opts), unrefFrida)
 
 	var err *C.GError
 	sc := C.frida_session_create_script_from_bytes_sync(s.s,
@@ -80,7 +81,7 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 		&err)
 	clean(unsafe.Pointer(bts), unrefGObject)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return &Script{
@@ -96,6 +97,7 @@ func (s *Session) CompileScript(script string, opts *ScriptOptions) ([]byte, err
 	if opts == nil {
 		opts = NewScriptOptions("frida-go")
 	}
+	defer clean(unsafe.Pointer(opts.opts), unrefFrida)
 
 	var err *C.GError
 	bts := C.frida_session_compile_script_sync(s.s,
@@ -104,7 +106,7 @@ func (s *Session) CompileScript(script string, opts *ScriptOptions) ([]byte, err
 		nil,
 		&err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return getGBytes(bts), nil
@@ -124,7 +126,7 @@ func (s *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 		&err)
 
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	bts := getGBytes(ret)
@@ -141,6 +143,7 @@ func (s *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (
 	if opts == nil {
 		opts = NewScriptOptions("frida-go")
 	}
+	defer clean(unsafe.Pointer(opts.opts), unrefFrida)
 
 	if opts.Name() == "" {
 		opts.SetName("frida-go")
@@ -149,7 +152,7 @@ func (s *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (
 	var err *C.GError
 	cScript := C.frida_session_create_script_sync(s.s, sc, opts.opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Script{
 		sc: cScript,
@@ -161,7 +164,7 @@ func (s *Session) SetupPeerConnection(opts *PeerOptions) error {
 	var err *C.GError
 	C.frida_session_setup_peer_connection_sync(s.s, opts.opts, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -174,7 +177,7 @@ func (s *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMember
 	var err *C.GError
 	mem := C.frida_session_join_portal_sync(s.s, addrC, opts.opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return &PortalMembership{mem}, nil

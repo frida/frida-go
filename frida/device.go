@@ -5,7 +5,6 @@ import "C"
 import (
 	"errors"
 	"reflect"
-	"runtime"
 	"sort"
 	"unsafe"
 )
@@ -26,11 +25,10 @@ func (d *Device) Name() string {
 }
 
 // DeviceIcon will return the device icon.
-func (d *Device) DeviceIcon() *C.GVariant {
+func (d *Device) DeviceIcon() interface{} {
 	icon := C.frida_device_get_icon(d.device)
 	dt := gPointerToGo((C.gpointer)(icon))
-	_ = dt
-	return icon
+	return dt
 }
 
 // DeviceType returns type of the device.
@@ -64,7 +62,7 @@ func (d *Device) Params() (map[string]interface{}, error) {
 	var err *C.GError
 	ht := C.frida_device_query_system_parameters_sync(d.device, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	params := gHashTableToMap(ht)
@@ -86,7 +84,7 @@ func (d *Device) FrontmostApplication(scope Scope) (*Application, error) {
 		nil,
 		&err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	if app.application == nil {
@@ -110,7 +108,7 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Appli
 	var err *C.GError
 	appList := C.frida_device_enumerate_applications_sync(d.device, queryOpts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	var apps []*Application
@@ -124,6 +122,9 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Appli
 		return apps[i].PID() > apps[j].PID()
 	})
 
+	clean(unsafe.Pointer(queryOpts), unrefFrida)
+	clean(unsafe.Pointer(appList), unrefFrida)
+
 	return apps, nil
 }
 
@@ -132,11 +133,12 @@ func (d *Device) ProcessByPID(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
 
 	var err *C.GError
 	proc := C.frida_device_get_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Process{proc}, nil
 }
@@ -149,11 +151,12 @@ func (d *Device) ProcessByName(name string, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
 
 	var err *C.GError
 	proc := C.frida_device_get_process_by_name_sync(d.device, nameC, opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Process{proc}, nil
 }
@@ -163,11 +166,12 @@ func (d *Device) FindProcessByPID(pid int, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
 
 	var err *C.GError
 	proc := C.frida_device_find_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Process{proc}, nil
 }
@@ -180,11 +184,12 @@ func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 	opts := C.frida_process_match_options_new()
 	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
 	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
 
 	var err *C.GError
 	proc := C.frida_device_find_process_by_name_sync(d.device, nameC, opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Process{proc}, nil
 }
@@ -193,11 +198,12 @@ func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
 func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 	opts := C.frida_process_query_options_new()
 	C.frida_process_query_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
 
 	var err *C.GError
 	procList := C.frida_device_enumerate_processes_sync(d.device, opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	var procs []*Process
@@ -207,6 +213,7 @@ func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 		procs = append(procs, &Process{proc})
 	}
 
+	clean(unsafe.Pointer(procList), unrefFrida)
 	return procs, nil
 }
 
@@ -215,7 +222,7 @@ func (d *Device) EnableSpawnGating() error {
 	var err *C.GError
 	C.frida_device_enable_spawn_gating_sync(d.device, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -225,7 +232,7 @@ func (d *Device) DisableSpawnGating() error {
 	var err *C.GError
 	C.frida_device_disable_spawn_gating_sync(d.device, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -235,7 +242,7 @@ func (d *Device) EnumeratePendingSpawn() ([]*Spawn, error) {
 	var err *C.GError
 	spawnList := C.frida_device_enumerate_pending_spawn_sync(d.device, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	var spawns []*Spawn
@@ -245,6 +252,7 @@ func (d *Device) EnumeratePendingSpawn() ([]*Spawn, error) {
 		spawns = append(spawns, &Spawn{spawn})
 	}
 
+	clean(unsafe.Pointer(spawnList), unrefFrida)
 	return spawns, nil
 }
 
@@ -253,7 +261,7 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 	var err *C.GError
 	childList := C.frida_device_enumerate_pending_children_sync(d.device, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	var childs []*Child
@@ -266,6 +274,7 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 		childs = append(childs, c)
 	}
 
+	clean(unsafe.Pointer(childList), unrefFrida)
 	return childs, nil
 }
 
@@ -275,6 +284,7 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 	if opts != nil {
 		opt = opts.opts
 	}
+	defer clean(unsafe.Pointer(opt), unrefFrida)
 
 	nameC := C.CString(name)
 	defer C.free(unsafe.Pointer(nameC))
@@ -282,7 +292,7 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 	var err *C.GError
 	pid := C.frida_device_spawn_sync(d.device, nameC, opt, nil, &err)
 	if err != nil {
-		return -1, &FridaError{err}
+		return -1, &FError{err}
 	}
 
 	return int(pid), nil
@@ -290,19 +300,13 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 
 // Input inputs []bytes into the process with pid specified.
 func (d *Device) Input(pid int, data []byte) error {
-	arr, len := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
+	gBytesData := goBytesToGBytes(data)
 
 	var err *C.GError
 	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -312,7 +316,7 @@ func (d *Device) Resume(pid int) error {
 	var err *C.GError
 	C.frida_device_resume_sync(d.device, C.guint(pid), nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -322,7 +326,7 @@ func (d *Device) Kill(pid int) error {
 	var err *C.GError
 	C.frida_device_kill_sync(d.device, C.guint(pid), nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -349,11 +353,12 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 	if opts != nil {
 		opt = opts.opts
 	}
+	defer clean(unsafe.Pointer(opt), unrefFrida)
 
 	var err *C.GError
 	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Session{s}, nil
 }
@@ -406,7 +411,7 @@ func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data st
 		nil,
 		&err)
 	if err != nil {
-		return 0, &FridaError{err}
+		return 0, &FError{err}
 	}
 
 	return uint(id), nil
@@ -447,13 +452,8 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 		defer C.free(unsafe.Pointer(dataC))
 	}
 
-	arr, len := uint8ArrayFromByteSlice(byteData)
-	defer C.free(unsafe.Pointer(arr))
-
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
+	gBytesData := goBytesToGBytes(byteData)
+	defer clean(unsafe.Pointer(gBytesData), unrefGObject)
 
 	var err *C.GError
 	id := C.frida_device_inject_library_blob_sync(d.device,
@@ -463,9 +463,8 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 		dataC,
 		nil,
 		&err)
-	runtime.KeepAlive(gBytesData)
 	if err != nil {
-		return 0, &FridaError{err}
+		return 0, &FError{err}
 	}
 
 	return uint(id), nil
@@ -479,19 +478,9 @@ func (d *Device) OpenChannel(address string) (*IOStream, error) {
 	var err *C.GError
 	stream := C.frida_device_open_channel_sync(d.device, addressC, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return NewIOStream(stream), nil
-}
-
-// HostSession returns device host session.
-func (d *Device) HostSession() (*HostSession, error) {
-	var err *C.GError
-	hs := C.frida_device_get_host_session_sync(d.device, nil, &err)
-	if err != nil {
-		return nil, &FridaError{err}
-	}
-	return &HostSession{hs}, nil
 }
 
 func (d *Device) On(sigName string, fn interface{}) {

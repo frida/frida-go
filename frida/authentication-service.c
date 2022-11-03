@@ -1,11 +1,10 @@
 #include "authentication-service.h"
 
-void startupfun (void) __attribute__ ((constructor));
+void init_frida (void) __attribute__ ((constructor));
 
-void startupfun(void) {
+void init_frida(void) {
   frida_init ();
 }
-
 
 extern void * authenticate(void*,char*);
 

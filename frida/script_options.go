@@ -3,7 +3,6 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
-	"runtime"
 	"unsafe"
 )
 
@@ -15,6 +14,7 @@ type ScriptOptions struct {
 // NewScriptOptions creates new script options with the script name provided.
 func NewScriptOptions(name string) *ScriptOptions {
 	opts := C.frida_script_options_new()
+	clean(unsafe.Pointer(opts), unrefGObject)
 
 	nameC := C.CString(name)
 	defer C.free(unsafe.Pointer(nameC))
@@ -37,12 +37,8 @@ func (s *ScriptOptions) SetName(name string) {
 // SetSnapshot sets the snapshot for the script.
 func (s *ScriptOptions) SetSnapshot(value []byte) {
 	bts := goBytesToGBytes(value)
-	runtime.SetFinalizer(bts, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-
 	C.frida_script_options_set_snapshot(s.opts, bts)
-	runtime.KeepAlive(bts)
+	clean(unsafe.Pointer(bts), unrefGObject)
 }
 
 // SetSnapshotTransport sets the transport for the snapshot

@@ -26,7 +26,7 @@ func (c *Compiler) Build(entrypoint string) (string, error) {
 	var err *C.GError
 	ret := C.frida_compiler_build_sync(c.cc, entrypointC, nil, nil, &err)
 	if err != nil {
-		return "", &FridaError{err}
+		return "", &FError{err}
 	}
 
 	return C.GoString(ret), nil
@@ -40,7 +40,7 @@ func (c *Compiler) Watch(entrypoint string) error {
 	var err *C.GError
 	C.frida_compiler_watch_sync(c.cc, entrypointC, nil, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 
 	return nil

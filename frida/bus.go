@@ -4,7 +4,6 @@ package frida
 //#include <stdlib.h>
 import "C"
 import (
-	"runtime"
 	"unsafe"
 )
 
@@ -24,7 +23,7 @@ func (b *Bus) Attach() error {
 	var err *C.GError
 	C.frida_bus_attach_sync(b.bus, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -38,15 +37,11 @@ func (b *Bus) Post(msg string, data []byte) {
 	defer C.free(unsafe.Pointer(arr))
 
 	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(sz))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-
 	C.frida_bus_post(b.bus, msgC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 }
 
-// Clean will clean resources held by bus.
+// Clean will clean resources held by the bus.
 func (b *Bus) Clean() {
 	clean(unsafe.Pointer(b.bus), unrefFrida)
 }

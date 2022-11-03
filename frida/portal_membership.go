@@ -18,7 +18,7 @@ func (p *PortalMembership) Terminate() error {
 	var err *C.GError
 	C.frida_portal_membership_terminate_sync(p.mem, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }

@@ -3,7 +3,6 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
-	"runtime"
 	"unsafe"
 )
 
@@ -44,7 +43,7 @@ func (p *Portal) Start() error {
 	var err *C.GError
 	C.frida_portal_service_start_sync(p.portal, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -54,7 +53,7 @@ func (p *Portal) Stop() error {
 	var err *C.GError
 	C.frida_portal_service_stop_sync(p.portal, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -69,16 +68,10 @@ func (p *Portal) Post(connectionID uint, json string, data []byte) {
 	jsonC := C.CString(json)
 	defer C.free(unsafe.Pointer(jsonC))
 
-	arr, len := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
+	gBytesData := goBytesToGBytes(data)
 
 	C.frida_portal_service_post(p.portal, C.guint(connectionID), jsonC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 }
 
 // Narrowcast sends the message to all controllers tagged with the tag.
@@ -89,15 +82,9 @@ func (p *Portal) Narrowcast(tag, json string, data []byte) {
 	jsonC := C.CString(json)
 	defer C.free(unsafe.Pointer(jsonC))
 
-	arr, len := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-
+	gBytesData := goBytesToGBytes(data)
 	C.frida_portal_service_narrowcast(p.portal, tagC, jsonC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 }
 
 // Broadcast sends the message to all controllers.
@@ -105,15 +92,9 @@ func (p *Portal) Broadcast(json string, data []byte) {
 	jsonC := C.CString(json)
 	defer C.free(unsafe.Pointer(jsonC))
 
-	arr, len := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(len))
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-
+	gBytesData := goBytesToGBytes(data)
 	C.frida_portal_service_broadcast(p.portal, jsonC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	clean(unsafe.Pointer(gBytesData), unrefGObject)
 }
 
 // EnumerateTags returns all the tags that connection with connectionID is tagged

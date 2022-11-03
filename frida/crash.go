@@ -2,7 +2,10 @@ package frida
 
 //#include <frida-core.h>
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"unsafe"
+)
 
 // Crash represents crash of frida.
 type Crash struct {
@@ -39,4 +42,8 @@ func (c *Crash) Params() map[string]interface{} {
 // String returns string interpretation of the crash
 func (c *Crash) String() string {
 	return fmt.Sprintf("<FridaCrash>: <%p>", c.crash)
+}
+
+func (c *Crash) Clean() {
+	clean(unsafe.Pointer(c.crash), unrefFrida)
 }

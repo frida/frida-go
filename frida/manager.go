@@ -19,32 +19,21 @@ func NewDeviceManager() *DeviceManager {
 }
 
 // Close method will close current manager.
-func (f *DeviceManager) Close() error {
+func (d *DeviceManager) Close() error {
 	var err *C.GError
-	C.frida_device_manager_close_sync(f.manager, nil, &err)
+	C.frida_device_manager_close_sync(d.manager, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
 
-// On connects manager to specific signals. Once sigName is trigerred,
-// fn callback will be called with parameters populated.
-//
-// Signals available are:
-//   - "added" with callback as func(device *frida.Devica) {}
-//   - "removed" with callback as func(device *frida.Device) {}
-//   - "changed" with callback as func() {}
-func (f *DeviceManager) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(f.manager), sigName, fn)
-}
-
-// EnumerateDevices will return all connected devices and an error
+// EnumerateDevices will return all connected devices.
 func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 	var err *C.GError
 	deviceList := C.frida_device_manager_enumerate_devices_sync(d.manager, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	var devices []*Device
@@ -55,6 +44,7 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 		devices = append(devices, &Device{device: device})
 	}
 
+	clean(unsafe.Pointer(deviceList), unrefFrida)
 	return devices, nil
 }
 
@@ -83,7 +73,7 @@ func (d *DeviceManager) DeviceByID(id string) (*Device, error) {
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_id_sync(d.manager, idC, timeout, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Device{device: device}, nil
 }
@@ -97,7 +87,7 @@ func (d *DeviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 		nil,
 		&err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 	return &Device{device: device}, nil
 }
@@ -116,7 +106,7 @@ func (d *DeviceManager) FindDeviceByID(id string) (*Device, error) {
 		nil,
 		&err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return &Device{device: device}, nil
@@ -133,7 +123,7 @@ func (d *DeviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
 		nil,
 		&err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return &Device{device: device}, nil
@@ -147,7 +137,7 @@ func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDevice
 	var err *C.GError
 	device := C.frida_device_manager_add_remote_device_sync(d.manager, addressC, remoteOpts.opts, nil, &err)
 	if err != nil {
-		return nil, &FridaError{err}
+		return nil, &FError{err}
 	}
 
 	return &Device{device: device}, nil
@@ -164,7 +154,18 @@ func (d *DeviceManager) RemoveRemoteDevice(address string) error {
 		nil,
 		&err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
+}
+
+// On connects manager to specific signals. Once sigName is trigerred,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "added" with callback as func(device *frida.Devica) {}
+//   - "removed" with callback as func(device *frida.Device) {}
+//   - "changed" with callback as func() {}
+func (d *DeviceManager) On(sigName string, fn interface{}) {
+	connectClosure(unsafe.Pointer(d.manager), sigName, fn)
 }

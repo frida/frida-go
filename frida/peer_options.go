@@ -6,6 +6,7 @@ import (
 	"unsafe"
 )
 
+// PeerOptions type represents struct used to setup p2p connection.
 type PeerOptions struct {
 	opts *C.FridaPeerOptions
 }

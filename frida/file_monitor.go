@@ -32,7 +32,7 @@ func (mon *FileMonitor) Enable() error {
 	var err *C.GError
 	C.frida_file_monitor_enable_sync(mon.fm, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
@@ -42,7 +42,7 @@ func (mon *FileMonitor) Disable() error {
 	var err *C.GError
 	C.frida_file_monitor_disable_sync(mon.fm, nil, &err)
 	if err != nil {
-		return &FridaError{err}
+		return &FError{err}
 	}
 	return nil
 }
