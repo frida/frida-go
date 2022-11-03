@@ -45,7 +45,7 @@ func main() {
 		fmt.Println("Received", msg)
 	}
 
-	script, err := sess.CreateScriptWithSnapshot(testScript, scriptOpts)
+	script, err := sess.CreateScriptWithOptions(testScript, scriptOpts)
 	script.On("message", onMessage)
 	script.Load()
 
