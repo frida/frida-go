@@ -352,8 +352,8 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 	var opt *C.FridaSessionOptions = nil
 	if opts != nil {
 		opt = opts.opts
+		defer clean(unsafe.Pointer(opt), unrefFrida)
 	}
-	defer clean(unsafe.Pointer(opt), unrefFrida)
 
 	var err *C.GError
 	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
