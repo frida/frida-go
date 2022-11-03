@@ -38,3 +38,8 @@ func (p *PeerOptions) SetStunServer(stunServer string) {
 	defer C.free(unsafe.Pointer(stunC))
 	C.frida_peer_options_set_stun_server(p.opts, stunC)
 }
+
+// Clean will clean the resources held by the peer options.
+func (p *PeerOptions) Clean() {
+	clean(unsafe.Pointer(p.opts), unrefFrida)
+}

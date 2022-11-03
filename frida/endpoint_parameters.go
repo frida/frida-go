@@ -131,3 +131,8 @@ func (e *EndpointParameters) SetAssetRoot(assetPath string) {
 	assetRoot := gFileFromPath(assetPath)
 	C.frida_endpoint_parameters_set_asset_root(e.params, assetRoot)
 }
+
+// Clean will clean the resources held by the endpoint parameters.
+func (e *EndpointParameters) Clean() {
+	clean(unsafe.Pointer(e.params), unrefFrida)
+}

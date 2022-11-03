@@ -108,6 +108,11 @@ func (f *Script) ExportsCall(fn string, args ...interface{}) interface{} {
 	return ret
 }
 
+// Clean will clean the resources held by the script.
+func (f *Script) Clean() {
+	clean(unsafe.Pointer(f.sc), unrefFrida)
+}
+
 // On function connects specific signal to the callback function.
 // When the signal gets trigerred, the callback function will be called
 // with the parameters populated

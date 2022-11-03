@@ -60,3 +60,8 @@ func (relay *Relay) Password() string {
 func (relay *Relay) RelayKind() RelayKind {
 	return RelayKind(C.frida_relay_get_kind(relay.r))
 }
+
+// Clean will clean the resources held by the relay.
+func (relay *Relay) Clean() {
+	clean(unsafe.Pointer(relay.r), unrefFrida)
+}

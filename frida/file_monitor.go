@@ -47,6 +47,10 @@ func (mon *FileMonitor) Disable() error {
 	return nil
 }
 
+func (mon *FileMonitor) Clean() {
+	clean(unsafe.Pointer(mon.fm), unrefFrida)
+}
+
 func (mon *FileMonitor) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(mon.fm), sigName, fn)
 }

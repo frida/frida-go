@@ -189,6 +189,11 @@ func (s *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMember
 	return &PortalMembership{mem}, nil
 }
 
+// Clean will clean the resources held by the session.
+func (s *Session) Clean() {
+	clean(unsafe.Pointer(s.s), unrefFrida)
+}
+
 func (s *Session) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(s.s), sigName, fn)
 }

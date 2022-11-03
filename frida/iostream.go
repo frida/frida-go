@@ -138,3 +138,10 @@ func (ios *IOStream) WriteAll(data []byte) error {
 	}
 	return nil
 }
+
+// Clean will clean resources held by the iostream.
+func (ios *IOStream) Clean() {
+	clean(unsafe.Pointer(ios.stream), unrefGObject)
+	clean(unsafe.Pointer(ios.input), unrefGObject)
+	clean(unsafe.Pointer(ios.output), unrefGObject)
+}

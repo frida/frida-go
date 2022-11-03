@@ -69,3 +69,8 @@ func (s *ScriptOptions) SnapshotTransport() SnapshotTransport {
 	tr := C.frida_script_options_get_snapshot_transport(s.opts)
 	return SnapshotTransport(tr)
 }
+
+// Clean will clean the resources held by the script options.
+func (s *ScriptOptions) Clean() {
+	clean(unsafe.Pointer(s.opts), unrefFrida)
+}

@@ -50,6 +50,7 @@ func (f *Child) Envp() []string {
 	return cArrayToStringSlice(arr, C.int(length))
 }
 
+// Clean will clean resources held by the child.
 func (f *Child) Clean() {
 	clean(unsafe.Pointer(f.child), unrefFrida)
 }

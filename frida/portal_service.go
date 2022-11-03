@@ -125,6 +125,11 @@ func (p *Portal) UntagConnection(connectionID uint, tag string) {
 	C.frida_portal_service_untag(p.portal, C.guint(connectionID), tagC)
 }
 
+// Clean will clean the resources held by the frida.
+func (p *Portal) Clean() {
+	clean(unsafe.Pointer(p.portal), unrefFrida)
+}
+
 func (p *Portal) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(p.portal), sigName, fn)
 }

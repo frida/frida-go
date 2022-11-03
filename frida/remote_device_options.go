@@ -72,6 +72,11 @@ func (r *RemoteDeviceOptions) SetKeepAlive(interval int) {
 	C.frida_remote_device_options_set_keepalive_interval(r.opts, C.gint(interval))
 }
 
+// Clean will clean the resources held by the remote device options.
+func (r *RemoteDeviceOptions) Clean() {
+	clean(unsafe.Pointer(r.opts), unrefFrida)
+}
+
 func gTLSCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
 	cert := C.CString(pempath)
 	defer C.free(unsafe.Pointer(cert))

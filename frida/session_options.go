@@ -2,6 +2,7 @@ package frida
 
 //#include <frida-core.h>
 import "C"
+import "unsafe"
 
 // SessionOptions type is used to configure session
 type SessionOptions struct {
@@ -27,4 +28,9 @@ func (s *SessionOptions) Realm() Realm {
 // PersistTimeout returns the persist timeout of the script.s
 func (s *SessionOptions) PersistTimeout() int {
 	return int(C.frida_session_options_get_persist_timeout(s.opts))
+}
+
+// Clean will clean the resources held by the session options.
+func (s *SessionOptions) Clean() {
+	clean(unsafe.Pointer(s.opts), unrefFrida)
 }

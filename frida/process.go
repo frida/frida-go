@@ -2,6 +2,7 @@ package frida
 
 //#include <frida-core.h>
 import "C"
+import "unsafe"
 
 // Process represents process on the device.
 type Process struct {
@@ -23,4 +24,9 @@ func (p *Process) Params() map[string]interface{} {
 	ht := C.frida_process_get_parameters(p.proc)
 	params := gHashTableToMap(ht)
 	return params
+}
+
+// Clean will clean the resources held by the process.
+func (p *Process) Clean() {
+	clean(unsafe.Pointer(p.proc), unrefFrida)
 }

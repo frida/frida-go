@@ -2,6 +2,7 @@ package frida
 
 //#include <frida-core.h>
 import "C"
+import "unsafe"
 
 // PortalMembership type is used to join portal with session.
 type PortalMembership struct {
@@ -21,4 +22,9 @@ func (p *PortalMembership) Terminate() error {
 		return &FError{err}
 	}
 	return nil
+}
+
+// Clean will clean the resources held by the portal membership.
+func (p *PortalMembership) Clean() {
+	clean(unsafe.Pointer(p.mem), unrefFrida)
 }

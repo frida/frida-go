@@ -46,6 +46,11 @@ func (c *Compiler) Watch(entrypoint string) error {
 	return nil
 }
 
+// Clean will clean resources held by the compiler.
+func (c *Compiler) Clean() {
+	clean(unsafe.Pointer(c.cc), unrefFrida)
+}
+
 func (c *Compiler) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(c.cc), sigName, fn)
 }

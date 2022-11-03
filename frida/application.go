@@ -40,6 +40,7 @@ func (a *Application) Params() map[string]interface{} {
 	return params
 }
 
+// Clean will clean resources held by the application.
 func (a *Application) Clean() {
 	clean(unsafe.Pointer(a.application), unrefFrida)
 }

@@ -32,3 +32,8 @@ func (s *SnapshotOptions) WarmupScript() string {
 func (s *SnapshotOptions) Runtime() ScriptRuntime {
 	return ScriptRuntime(int(C.frida_snapshot_options_get_runtime(s.opts)))
 }
+
+// Clean will clean the resources held by the snapshot options.
+func (s *SnapshotOptions) Clean() {
+	clean(unsafe.Pointer(s.opts), unrefFrida)
+}

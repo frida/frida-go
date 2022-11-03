@@ -159,6 +159,11 @@ func (d *DeviceManager) RemoveRemoteDevice(address string) error {
 	return nil
 }
 
+// Clean will clean the resources held by the manager.
+func (d *DeviceManager) Clean() {
+	clean(unsafe.Pointer(d.manager), unrefFrida)
+}
+
 // On connects manager to specific signals. Once sigName is trigerred,
 // fn callback will be called with parameters populated.
 //

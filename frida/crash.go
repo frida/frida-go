@@ -44,6 +44,7 @@ func (c *Crash) String() string {
 	return fmt.Sprintf("<FridaCrash>: <%p>", c.crash)
 }
 
+// Clean will clean resources held by the crash.
 func (c *Crash) Clean() {
 	clean(unsafe.Pointer(c.crash), unrefFrida)
 }

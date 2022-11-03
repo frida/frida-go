@@ -483,6 +483,11 @@ func (d *Device) OpenChannel(address string) (*IOStream, error) {
 	return NewIOStream(stream), nil
 }
 
+// Clean will clean the resources held by the device.
+func (d *Device) Clean() {
+	clean(unsafe.Pointer(d.device), unrefFrida)
+}
+
 func (d *Device) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(d.device), sigName, fn)
 }

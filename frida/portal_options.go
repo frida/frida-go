@@ -59,3 +59,8 @@ func (p *PortalOptions) SetACL(acls []string) {
 	C.frida_portal_options_set_acl(p.opts, arr, C.gint(sz))
 	freeCharArray(arr, C.int(sz))
 }
+
+// Clean will clean the resources held by the portal options.
+func (p *PortalOptions) Clean() {
+	clean(unsafe.Pointer(p.opts), unrefFrida)
+}

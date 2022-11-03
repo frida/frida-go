@@ -110,3 +110,8 @@ func (s *SpawnOptions) Aux() map[string]interface{} {
 	aux := gHashTableToMap(ht)
 	return aux
 }
+
+// Clean will clean the resources held by the spawn options.
+func (s *SpawnOptions) Clean() {
+	clean(unsafe.Pointer(s.opts), unrefFrida)
+}
