@@ -14,7 +14,6 @@ type ScriptOptions struct {
 // NewScriptOptions creates new script options with the script name provided.
 func NewScriptOptions(name string) *ScriptOptions {
 	opts := C.frida_script_options_new()
-	clean(unsafe.Pointer(opts), unrefGObject)
 
 	nameC := C.CString(name)
 	defer C.free(unsafe.Pointer(nameC))
