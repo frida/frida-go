@@ -3,6 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
@@ -67,6 +68,9 @@ func (s *Session) CreateScript(script string) (*Script, error) {
 // CreateScriptBytes is a wrapper around CreateScript(script string)
 func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script, error) {
 	bts := goBytesToGBytes(script)
+	runtime.SetFinalizer(bts, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	if opts == nil {
 		opts = NewScriptOptions("frida-go")
@@ -79,7 +83,7 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 		opts.opts,
 		nil,
 		&err)
-	clean(unsafe.Pointer(bts), unrefGObject)
+	runtime.KeepAlive(bts)
 	if err != nil {
 		return nil, &FError{err}
 	}

@@ -5,6 +5,7 @@ import "C"
 import (
 	"errors"
 	"reflect"
+	"runtime"
 	"sort"
 	"unsafe"
 )
@@ -301,10 +302,13 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 // Input inputs []bytes into the process with pid specified.
 func (d *Device) Input(pid int, data []byte) error {
 	gBytesData := goBytesToGBytes(data)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	var err *C.GError
 	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
-	clean(unsafe.Pointer(gBytesData), unrefGObject)
+	runtime.KeepAlive(gBytesData)
 	if err != nil {
 		return &FError{err}
 	}
@@ -453,7 +457,9 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 	}
 
 	gBytesData := goBytesToGBytes(byteData)
-	defer clean(unsafe.Pointer(gBytesData), unrefGObject)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		defer clean(unsafe.Pointer(g), unrefGObject)
+	})
 
 	var err *C.GError
 	id := C.frida_device_inject_library_blob_sync(d.device,
@@ -463,6 +469,7 @@ func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoi
 		dataC,
 		nil,
 		&err)
+	runtime.KeepAlive(gBytesData)
 	if err != nil {
 		return 0, &FError{err}
 	}

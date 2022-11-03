@@ -3,6 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
@@ -36,8 +37,11 @@ func (s *ScriptOptions) SetName(name string) {
 // SetSnapshot sets the snapshot for the script.
 func (s *ScriptOptions) SetSnapshot(value []byte) {
 	bts := goBytesToGBytes(value)
+	runtime.SetFinalizer(bts, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 	C.frida_script_options_set_snapshot(s.opts, bts)
-	clean(unsafe.Pointer(bts), unrefGObject)
+	runtime.KeepAlive(bts)
 }
 
 // SetSnapshotTransport sets the transport for the snapshot

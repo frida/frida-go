@@ -5,6 +5,7 @@ import "C"
 import (
 	"encoding/json"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"unsafe"
@@ -62,8 +63,11 @@ func (f *Script) Post(jsonString string, data []byte) {
 	defer C.free(unsafe.Pointer(jsonStringC))
 
 	gBytesData := goBytesToGBytes(data)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 	C.frida_script_post(f.sc, jsonStringC, gBytesData)
-	clean(unsafe.Pointer(gBytesData), unrefGObject)
+	runtime.KeepAlive(gBytesData)
 }
 
 // EnableDebugger function enables debugging on the port specified
