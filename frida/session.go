@@ -61,7 +61,7 @@ func (s *Session) DisableChildGating() error {
 
 // CreateScript creates new string from the string provided.
 func (s *Session) CreateScript(script string) (*Script, error) {
-	return s.CreateScriptWithSnapshot(script, nil)
+	return s.CreateScriptWithOptions(script, nil)
 }
 
 // CreateScriptBytes is a wrapper around CreateScript(script string)
@@ -86,6 +86,37 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 
 	return &Script{
 		sc: sc,
+	}, nil
+}
+
+func (s *Session) CreateScriptWithSnapshot(script string, snapshot []byte) (*Script, error) {
+	opts := NewScriptOptions("frida-go")
+	opts.SetSnapshot(snapshot)
+	return s.CreateScriptWithOptions(script, opts)
+}
+
+// CreateScriptWithOptions creates the script with the script options provided.
+// Useful in cases where you previously created the snapshot.
+func (s *Session) CreateScriptWithOptions(script string, opts *ScriptOptions) (*Script, error) {
+	sc := C.CString(script)
+	defer C.free(unsafe.Pointer(sc))
+
+	if opts == nil {
+		opts = NewScriptOptions("frida-go")
+	}
+	defer clean(unsafe.Pointer(opts.opts), unrefFrida)
+
+	if opts.Name() == "" {
+		opts.SetName("frida-go")
+	}
+
+	var err *C.GError
+	cScript := C.frida_session_create_script_sync(s.s, sc, opts.opts, nil, &err)
+	if err != nil {
+		return nil, &FError{err}
+	}
+	return &Script{
+		sc: cScript,
 	}, nil
 }
 
@@ -132,31 +163,6 @@ func (s *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 	bts := getGBytes(ret)
 
 	return bts, nil
-}
-
-// CreateScriptWithSnapshot creates the script with the script options provided.
-// Useful in cases where you previously created the snapshot.
-func (s *Session) CreateScriptWithSnapshot(script string, opts *ScriptOptions) (*Script, error) {
-	sc := C.CString(script)
-	defer C.free(unsafe.Pointer(sc))
-
-	if opts == nil {
-		opts = NewScriptOptions("frida-go")
-	}
-	defer clean(unsafe.Pointer(opts.opts), unrefFrida)
-
-	if opts.Name() == "" {
-		opts.SetName("frida-go")
-	}
-
-	var err *C.GError
-	cScript := C.frida_session_create_script_sync(s.s, sc, opts.opts, nil, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
-	return &Script{
-		sc: cScript,
-	}, nil
 }
 
 // SetupPeerConnection sets up peer (p2p) connection with peer options provided.
