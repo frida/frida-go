@@ -21,8 +21,9 @@ func NewRemoteDeviceOptions() *RemoteDeviceOptions {
 }
 
 // Certificate returns the certificate for the remote device options.
-func (r *RemoteDeviceOptions) Certificate() *C.GTlsCertificate {
-	return C.frida_remote_device_options_get_certificate(r.opts)
+func (r *RemoteDeviceOptions) Certificate() *Certificate {
+	cert := C.frida_remote_device_options_get_certificate(r.opts)
+	return &Certificate{cert}
 }
 
 // Origin returns the origin for the remote device options.
@@ -47,7 +48,7 @@ func (r *RemoteDeviceOptions) SetCertificate(certPath string) error {
 		return err
 	}
 
-	C.frida_remote_device_options_set_certificate(r.opts, cert)
+	C.frida_remote_device_options_set_certificate(r.opts, cert.cert)
 	return nil
 }
 
@@ -77,7 +78,7 @@ func (r *RemoteDeviceOptions) Clean() {
 	clean(unsafe.Pointer(r.opts), unrefFrida)
 }
 
-func gTLSCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
+func gTLSCertificateFromFile(pempath string) (*Certificate, error) {
 	cert := C.CString(pempath)
 	defer C.free(unsafe.Pointer(cert))
 
@@ -87,7 +88,7 @@ func gTLSCertificateFromFile(pempath string) (*C.GTlsCertificate, error) {
 		return nil, &FError{err}
 	}
 
-	return gTLSCert, nil
+	return &Certificate{gTLSCert}, nil
 }
 
 func gFileFromPath(assetPath string) *C.GFile {

@@ -1,5 +1,7 @@
 package frida
 
+//#include <frida-core.h>
+import "C"
 import "fmt"
 
 const (
@@ -141,7 +143,7 @@ const (
 	SnapshotTransportSharedMemory
 )
 
-// Address represents structure returned by some specific signals
+// Address represents structure returned by some specific signals.
 type Address struct {
 	Addr string
 	Port uint16
@@ -150,4 +152,9 @@ type Address struct {
 // String representation of Address in format ADDR:PORT
 func (a *Address) String() string {
 	return fmt.Sprintf("%s:%d", a.Addr, a.Port)
+}
+
+// Certificate represents the GTlsCertificate.
+type Certificate struct {
+	cert *C.GTlsCertificate
 }

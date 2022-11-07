@@ -80,7 +80,7 @@ func NewEndpointParameters(params *EParams) (*EndpointParameters, error) {
 		if err != nil {
 			return nil, err
 		}
-		cert = crt
+		cert = crt.cert
 	}
 
 	if params.AssetRoot != "" {
@@ -110,8 +110,9 @@ func (e *EndpointParameters) Port() uint16 {
 }
 
 // Certificate returns the certificate of the endpoint parameters.
-func (e *EndpointParameters) Certificate() *C.GTlsCertificate {
-	return C.frida_endpoint_parameters_get_certificate(e.params)
+func (e *EndpointParameters) Certificate() *Certificate {
+	cert := C.frida_endpoint_parameters_get_certificate(e.params)
+	return &Certificate{cert}
 }
 
 // Origin returns the origin of the endpoint parameters.

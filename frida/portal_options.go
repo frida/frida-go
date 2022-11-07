@@ -18,8 +18,9 @@ func NewPortalOptions() *PortalOptions {
 }
 
 // Certificate returns the tls certificate for portal options.
-func (p *PortalOptions) Certificate() *C.GTlsCertificate {
-	return C.frida_portal_options_get_certificate(p.opts)
+func (p *PortalOptions) Certificate() *Certificate {
+	cert := C.frida_portal_options_get_certificate(p.opts)
+	return &Certificate{cert}
 }
 
 // Token returns the token for the portal.
@@ -41,7 +42,7 @@ func (p *PortalOptions) SetCertificate(certPath string) error {
 		return err
 	}
 
-	C.frida_portal_options_set_certificate(p.opts, cert)
+	C.frida_portal_options_set_certificate(p.opts, cert.cert)
 	return nil
 }
 
