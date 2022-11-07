@@ -13,12 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
+      - uses: ./.github/actions/install-frida-go-examples
       - uses: ./.github/actions/install-frida-devkit
         with:
           arch: ${{ matrix.arch }}
           os: ${{ matrix.os }}
           version: ${{ matrix.frida_version }}
       - run: |
-          for example in ./examples/*; do
+          for example in ./frida-go-examples/*; do
             go build "$example"
           done
