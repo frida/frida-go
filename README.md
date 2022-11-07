@@ -6,9 +6,11 @@ Go bindings for frida
 * Download the _frida-core-devkit_ from the Frida releases [page](https://github.com/frida/frida/releases/) for you operating system and architecture.
 * Extract the downloaded archive
 * Copy _frida-core.h_ inside your systems include directory(inside /usr/local/include/) and _libfrida-core.a_ inside your lib directory (usually /usr/local/lib).
-* Getting frida-go:
-   * MacOS: `CGO_CFLAGS="-isysroot $(xcrun --sdk macosx --show-sdk-path)" go get github.com/lateralusd/frida-go`
-   * Linux: `go get github.com/lateralusd/frida-go`
+
+To use in your project, just execute: 
+```bash
+$ go get github.com/lateralusd/frida-go/frida@latest
+```
 
 Windows is not currently supported. The problem is compiling frida-core with mingw because mingw(needed by cgo) can't link with MSVC .lib files.
 If you manage to do it, feel free to submit your PR, also if you found any issues please submit new issue or create PR to fix it.
