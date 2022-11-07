@@ -5,7 +5,7 @@ Go bindings for frida
 * `GO111MODULE` needs to be set to `on` or `auto`.
 * Download the _frida-core-devkit_ from the Frida releases [page](https://github.com/frida/frida/releases/) for you operating system and architecture.
 * Extract the downloaded archive
-* Copy _frida-core.h_ inside your systems include directory(inside /usr/local/include/) and _libfrida-core.a_(usually /usr/local/lib) inside your lib directory
+* Copy _frida-core.h_ inside your systems include directory(inside /usr/local/include/) and _libfrida-core.a_ inside your lib directory (usually /usr/local/lib).
 * Getting frida-go:
    * MacOS: `CGO_CFLAGS="-isysroot $(xcrun --sdk macosx --show-sdk-path)" go get github.com/lateralusd/frida-go`
    * Linux: `go get github.com/lateralusd/frida-go`
@@ -21,7 +21,6 @@ import (
   "bufio"
   "fmt"
   "github.com/lateralusd/frida-go/frida"
-  _ "github.com/lateralusd/frida-go/frida"
   "os"
 )
 
