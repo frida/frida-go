@@ -47,10 +47,16 @@ func (mon *FileMonitor) Disable() error {
 	return nil
 }
 
+// Clean will clean the resources held by the file monitor.
 func (mon *FileMonitor) Clean() {
 	clean(unsafe.Pointer(mon.fm), unrefFrida)
 }
 
+// On connects file monitor to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "change" with callback as func(changedFile, otherFile, changeType string) {}
 func (mon *FileMonitor) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(mon.fm), sigName, fn)
 }

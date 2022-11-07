@@ -117,12 +117,20 @@ func (f *Script) Clean() {
 	clean(unsafe.Pointer(f.sc), unrefFrida)
 }
 
-// On function connects specific signal to the callback function.
-// When the signal gets trigerred, the callback function will be called
-// with the parameters populated
+// On connects script to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "destroyed" with callback as func() {}
+//   - "message" with callback as func(message string, data []byte) {}
 func (f *Script) On(sigName string, fn interface{}) {
-	f.fn = reflect.ValueOf(fn)
-	connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
+	// hijack message to handle rpc calls
+	if sigName == "message" {
+		f.fn = reflect.ValueOf(fn)
+		connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
+	} else {
+		connectClosure(unsafe.Pointer(f.sc), sigName, fn)
+	}
 }
 
 func getRPCIDFromMessage(message string) (string, interface{}, error) {

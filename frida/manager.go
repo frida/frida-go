@@ -164,11 +164,11 @@ func (d *DeviceManager) Clean() {
 	clean(unsafe.Pointer(d.manager), unrefFrida)
 }
 
-// On connects manager to specific signals. Once sigName is trigerred,
+// On connects manager to specific signals. Once sigName is triggered,
 // fn callback will be called with parameters populated.
 //
 // Signals available are:
-//   - "added" with callback as func(device *frida.Devica) {}
+//   - "added" with callback as func(device *frida.Device) {}
 //   - "removed" with callback as func(device *frida.Device) {}
 //   - "changed" with callback as func() {}
 func (d *DeviceManager) On(sigName string, fn interface{}) {

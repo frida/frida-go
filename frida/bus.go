@@ -46,6 +46,12 @@ func (b *Bus) Clean() {
 	clean(unsafe.Pointer(b.bus), unrefFrida)
 }
 
+// On connects bus to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "detached" with callback as func() {}
+//   - "message" with callback as func(message string, data []byte) {}
 func (b *Bus) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(b.bus), sigName, fn)
 }

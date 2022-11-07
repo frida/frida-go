@@ -495,6 +495,18 @@ func (d *Device) Clean() {
 	clean(unsafe.Pointer(d.device), unrefFrida)
 }
 
+// On connects device to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "spawn_added" with callback as func(spawn *frida.Spawn) {}
+//   - "spawn_removed" with callback as func(spawn *frida.Spawn) {}
+//   - "child_added" with callback as func(child *frida.Child) {}
+//   - "child_removed" with callback as func(child *frida.Child) {}
+//   - "process_crashed" with callback as func(crash *frida.Crash) {}
+//   - "output" with callback as func(pid, fd int, data []byte) {}
+//   - "uninjected" with callback as func(id int) {}
+//   - "lost" with callback as func() {}
 func (d *Device) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(d.device), sigName, fn)
 }

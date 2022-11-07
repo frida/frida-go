@@ -140,6 +140,19 @@ func (p *Portal) Clean() {
 	clean(unsafe.Pointer(p.portal), unrefFrida)
 }
 
+// On connects portal to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "node_connected" with callback as func(connId uint, addr *frida.Address) {}
+//   - "node_joined" with callback as func(connId uint, app *frida.Application) {}
+//   - "node_left" with callback as func(connId uint, app *frida.Application) {}
+//   - "node_disconnected" with callback as func(connId uint, addr *frida.Address) {}
+//   - "controller_connected" with callback as func(connId uint, addr *frida.Address) {}
+//   - "controller_disconnected" with callback as func(connId uint, addr *frida.Address) {}
+//   - "authenticated" with callback as func(connId uint, sessionInfo string) {}
+//   - "subscribe" with callback as func(connId uint) {}
+//   - "message" with callback as func(connId uint, jsonData string, data []byte) {}
 func (p *Portal) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(p.portal), sigName, fn)
 }

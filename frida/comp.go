@@ -3,11 +3,15 @@ package frida
 /*#include <frida-core.h>
  */
 import "C"
-import "unsafe"
+import (
+	"reflect"
+	"unsafe"
+)
 
 // Compiler type is used to compile scripts.
 type Compiler struct {
 	cc *C.FridaCompiler
+	fn reflect.Value
 }
 
 // NewCompiler creates new compiler.
@@ -15,7 +19,9 @@ func NewCompiler() *Compiler {
 	mgr := getDeviceManager()
 	cc := C.frida_compiler_new(mgr.manager)
 
-	return &Compiler{cc}
+	return &Compiler{
+		cc: cc,
+	}
 }
 
 // Build builds the script from the entrypoint.
@@ -51,6 +57,27 @@ func (c *Compiler) Clean() {
 	clean(unsafe.Pointer(c.cc), unrefFrida)
 }
 
+// On connects compiler to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "starting" with callback as func() {}
+//   - "finished" with callback as func() {}
+//   - "output" with callback as func(bundle string) {}
+//   - "diagnostics" with callback as func(diag string) {}
+//   - "file_changed" with callback as func() {}
 func (c *Compiler) On(sigName string, fn interface{}) {
-	connectClosure(unsafe.Pointer(c.cc), sigName, fn)
+	// hijack diagnostics and pass only text
+	if sigName == "diagnostics" {
+		c.fn = reflect.ValueOf(fn)
+		connectClosure(unsafe.Pointer(c.cc), sigName, c.hijackFn)
+	} else {
+		connectClosure(unsafe.Pointer(c.cc), sigName, fn)
+	}
+}
+
+func (c *Compiler) hijackFn(diag map[string]interface{}) {
+	text := diag["text"].(string)
+	args := []reflect.Value{reflect.ValueOf(text)}
+	c.fn.Call(args)
 }

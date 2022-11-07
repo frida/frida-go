@@ -198,6 +198,11 @@ func (s *Session) Clean() {
 	clean(unsafe.Pointer(s.s), unrefFrida)
 }
 
+// On connects session to specific signals. Once sigName is triggered,
+// fn callback will be called with parameters populated.
+//
+// Signals available are:
+//   - "detached" with callback as func(reason frida.SessionDetachReason, crash *frida.Crash) {}
 func (s *Session) On(sigName string, fn interface{}) {
 	connectClosure(unsafe.Pointer(s.s), sigName, fn)
 }

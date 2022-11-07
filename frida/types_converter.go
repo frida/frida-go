@@ -122,6 +122,7 @@ const (
 	gint                     gTypeName = "gint"
 	gFileMonitorEvent        gTypeName = "GFileMonitorEvent"
 	gSocketAddress           gTypeName = "GSocketAddress"
+	gVariant                 gTypeName = "GVariant"
 )
 
 type marshallerFunc func(val *C.GValue) interface{}
@@ -138,6 +139,7 @@ var gTypeString = map[gTypeName]marshallerFunc{
 	gint:                     getInt,
 	gFileMonitorEvent:        getFm,
 	gSocketAddress:           getGSocketAddress,
+	gVariant:                 getGVariant,
 }
 
 func getString(val *C.GValue) interface{} {
@@ -239,6 +241,11 @@ func getFridaApplication(val *C.GValue) interface{} {
 	return &Application{
 		application: app,
 	}
+}
+
+func getGVariant(val *C.GValue) interface{} {
+	v := C.g_value_get_variant(val)
+	return gVariantToGo(v)
 }
 
 func getGoValueFromGValue(val *C.GValue) interface{} {
