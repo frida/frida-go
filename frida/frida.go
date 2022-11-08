@@ -31,6 +31,7 @@ func getDeviceManager() *DeviceManager {
 	return v.(*DeviceManager)
 }
 
+// LocalDevice is a wrapper around DeviceByType(DeviceTypeLocal).
 func LocalDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
@@ -42,6 +43,7 @@ func LocalDevice() *Device {
 	return v.(*Device)
 }
 
+// USBDevice is a wrapper around DeviceByType(DeviceTypeUsb).
 func USBDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("usbDevice")
@@ -61,6 +63,7 @@ func USBDevice() *Device {
 	return v.(*Device)
 }
 
+// Attach attaches at val(string or int pid) using local device.
 func Attach(val interface{}) (*Session, error) {
 	dev := LocalDevice()
 	return dev.Attach(val, nil)
