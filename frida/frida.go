@@ -2,10 +2,11 @@
 package frida
 
 /*
-#cgo LDFLAGS: -lfrida-core -lm -ldl -lpthread -lresolv
+#cgo LDFLAGS: -lfrida-core -lm -ldl
 #cgo CFLAGS: -I/usr/local/include/ -w
-#cgo darwin LDFLAGS: -lbsm -framework Foundation -framework AppKit
-#cgo linux LDFLAGS: -lrt
+#cgo darwin LDFLAGS: -lbsm -framework Foundation -framework AppKit -lresolv -lpthread
+#cgo android LDFLAGS: -lrt -llog
+#cgo linux,!android LDFLAGS: -lrt -lresolv -lpthread
 #cgo linux CFLAGS: -pthread
 #include <frida-core.h>
 */
