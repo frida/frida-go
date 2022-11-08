@@ -16,16 +16,6 @@ import (
 
 var data = &sync.Map{}
 
-// Shutdown function shuts down frida
-func Shutdown() {
-	C.frida_shutdown()
-}
-
-// Deinit function deinitializes frida by calling frida_deinit
-func Deinit() {
-	C.frida_deinit()
-}
-
 // Version returns currently used frida version
 func Version() string {
 	return C.GoString(C.frida_version_string())
