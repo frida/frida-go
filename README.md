@@ -12,8 +12,14 @@ To use in your project, just execute:
 $ go get github.com/lateralusd/frida-go/frida@latest
 ```
 
-Windows is not currently supported. The problem is compiling frida-core with mingw because mingw(needed by cgo) can't link with MSVC .lib files.
-If you manage to do it, feel free to submit your PR, also if you found any issues please submit new issue or create PR to fix it.
+Supported OS:
+- [x] MacOS
+- [x] Linux
+- [x] Android
+- [ ] Windows
+
+The reason why windows is not supported it the problem compiling frida-core with mingw because mingw(needed by cgo) can't link with MSVC .lib files.
+If you manage to do it, feel free to submit your PR, also if you found any issues please submit new issue or create PR with the fix.
 
 # Small example
 ```golang
