@@ -265,7 +265,7 @@ func getCharArrayElement(arr **C.char, n int) *C.char {
 }
 
 func cArrayToStringSlice(arr **C.char, length C.int) []string {
-	s := []string{}
+	var s []string
 
 	for i := 0; i < int(length); i++ {
 		elem := C.get_char_elem(arr, C.int(i))

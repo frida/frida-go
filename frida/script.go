@@ -98,7 +98,7 @@ func (f *Script) ExportsCall(fn string, args ...interface{}) interface{} {
 	var aIface []interface{}
 	aIface = append(aIface, args...)
 
-	rpc := []interface{}{}
+	var rpc []interface{}
 	rpc = append(rpc, rpcData...)
 	rpc = append(rpc, aIface)
 

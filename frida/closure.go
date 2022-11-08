@@ -63,7 +63,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 	}
 
 	gvalues := func(params *C.GValue, count int) []C.GValue {
-		slc := []C.GValue{}
+		var slc []C.GValue
 		hdr := (*reflect.SliceHeader)(unsafe.Pointer(&slc))
 		hdr.Cap = count
 		hdr.Len = count
