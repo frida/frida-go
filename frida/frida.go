@@ -12,10 +12,17 @@ package frida
 */
 import "C"
 import (
+	"runtime"
 	"sync"
 )
 
 var data = &sync.Map{}
+
+func init() {
+	if runtime.GOOS == "android" {
+		C.frida_selinux_patch_policy()
+	}
+}
 
 // Version returns currently used frida version
 func Version() string {
