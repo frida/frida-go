@@ -18,6 +18,11 @@ import (
 
 var data = &sync.Map{}
 
+// PatchAndroidSELinux tries to patch selinux; root access is required.
+func PatchAndroidSELinux() {
+	C.frida_selinux_patch_policy()
+}
+
 // Version returns currently used frida version
 func Version() string {
 	return C.GoString(C.frida_version_string())
