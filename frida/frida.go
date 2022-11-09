@@ -10,6 +10,7 @@ package frida
 #cgo linux,!android LDFLAGS: -lrt -lresolv -lpthread
 #cgo linux CFLAGS: -pthread
 #include <frida-core.h>
+#include "android-selinux.h"
 */
 import "C"
 import (
@@ -20,7 +21,7 @@ var data = &sync.Map{}
 
 // PatchAndroidSELinux tries to patch selinux; root access is required.
 func PatchAndroidSELinux() {
-	C.frida_selinux_patch_policy()
+	C.android_patch_selinux()
 }
 
 // Version returns currently used frida version
