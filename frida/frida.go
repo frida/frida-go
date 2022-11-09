@@ -6,23 +6,17 @@ package frida
 #cgo CFLAGS: -I/usr/local/include/ -w
 #cgo darwin LDFLAGS: -lbsm -framework Foundation -framework AppKit -lresolv -lpthread
 #cgo android LDFLAGS: -lrt -llog
+#cgo android CFLAGS: -DANDROID
 #cgo linux,!android LDFLAGS: -lrt -lresolv -lpthread
 #cgo linux CFLAGS: -pthread
 #include <frida-core.h>
 */
 import "C"
 import (
-	"runtime"
 	"sync"
 )
 
 var data = &sync.Map{}
-
-func init() {
-	if runtime.GOOS == "android" {
-		C.frida_selinux_patch_policy()
-	}
-}
 
 // Version returns currently used frida version
 func Version() string {

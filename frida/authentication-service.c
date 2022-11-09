@@ -4,6 +4,9 @@ void init_frida (void) __attribute__ ((constructor));
 
 void init_frida(void) {
   frida_init ();
+#ifdef __ANDROID__
+  frida_selinux_patch_policy();
+#endif
 }
 
 extern void * authenticate(void*,char*);
