@@ -1,5 +1,7 @@
 # frida-go
-Go bindings for frida
+Go bindings for frida.
+
+For the documentation, visit [https://pkg.go.dev/github.com/frida/frida-go/frida](https://pkg.go.dev/github.com/frida/frida-go/frida).
 
 # Installation
 * `GO111MODULE` needs to be set to `on` or `auto`.
