@@ -9,7 +9,7 @@ Go bindings for frida
 
 To use in your project, just execute: 
 ```bash
-$ go get github.com/lateralusd/frida-go/frida@latest
+$ go get github.com/frida/frida-go/frida@latest
 ```
 
 Supported OS:
@@ -28,7 +28,7 @@ package main
 import (
   "bufio"
   "fmt"
-  "github.com/lateralusd/frida-go/frida"
+  "github.com/frida/frida-go/frida"
   "os"
 )
 

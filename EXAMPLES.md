@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lateralusd/frida-go/frida"
+	"github.com/frida/frida-go/frida"
 )
 
 func main() {
@@ -47,7 +47,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lateralusd/frida-go/frida"
+	"github.com/frida/frida-go/frida"
 )
 
 var sc = `
@@ -158,7 +158,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/lateralusd/frida-go/frida"
+	"github.com/frida/frida-go/frida"
 	"os"
 )
 
@@ -212,7 +212,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/lateralusd/frida-go/frida"
+	"github.com/frida/frida-go/frida"
 )
 
 func main() {
@@ -260,7 +260,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/lateralusd/frida-go/frida"
+	"github.com/frida/frida-go/frida"
 )
 
 func main() {

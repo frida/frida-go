@@ -1,4 +1,4 @@
-module github.com/lateralusd/frida-go
+module github.com/frida/frida-go
 
 go 1.19
 
