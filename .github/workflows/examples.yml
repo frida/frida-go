@@ -6,7 +6,7 @@ jobs:
       matrix:
         arch: [x86_64]
         os: [linux]
-        frida_version: ["16.0.3"]
+        frida_version: ["16.0.4"]
     runs-on: ubuntu-latest
     env:
       GODEBUG: cgocheck=2
