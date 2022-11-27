@@ -153,8 +153,3 @@ type Address struct {
 func (a *Address) String() string {
 	return fmt.Sprintf("%s:%d", a.Addr, a.Port)
 }
-
-// Certificate represents the GTlsCertificate.
-type Certificate struct {
-	cert *C.GTlsCertificate
-}
