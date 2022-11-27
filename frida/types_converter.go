@@ -285,16 +285,6 @@ func stringSliceToCharArr(ss []string) (**C.char, C.int) {
 	return arr, C.int(len(ss))
 }
 
-func uint8ArrayFromByteSlice(bts []byte) (*C.guint8, C.int) {
-	arr := C.new_guint8_array(C.int(len(bts)))
-
-	for i, bt := range bts {
-		C.att_to_guint8_array(arr, C.guint8(bt), C.int(i))
-	}
-
-	return arr, C.int(len(bts))
-}
-
 func goBytesToGBytes(bts []byte) *C.GBytes {
 	arr := C.new_guint8_array(C.int(len(bts)))
 

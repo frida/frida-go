@@ -4,6 +4,7 @@ package frida
 //#include <stdlib.h>
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
@@ -33,12 +34,12 @@ func (b *Bus) Post(msg string, data []byte) {
 	msgC := C.CString(msg)
 	defer C.free(unsafe.Pointer(msgC))
 
-	arr, sz := uint8ArrayFromByteSlice(data)
-	defer C.free(unsafe.Pointer(arr))
-
-	gBytesData := C.g_bytes_new((C.gconstpointer)(unsafe.Pointer(arr)), C.gsize(sz))
+	gBytesData := goBytesToGBytes(data)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
 	C.frida_bus_post(b.bus, msgC, gBytesData)
-	clean(unsafe.Pointer(gBytesData), unrefGObject)
+	runtime.KeepAlive(gBytesData)
 }
 
 // Clean will clean resources held by the bus.
