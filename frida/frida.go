@@ -71,6 +71,26 @@ func USBDevice() *Device {
 	return v.(*Device)
 }
 
+// DeviceById tries to get the device by id on the default manager
+func DeviceById(id string) (*Device, error) {
+	mgr := getDeviceManager()
+	v, ok := data.Load(id)
+	if !ok {
+		_, ok := data.Load("enumeratedDevices")
+		if !ok {
+			mgr.EnumerateDevices()
+			data.Store("enumeratedDevices", true)
+		}
+		dev, err := mgr.DeviceByID(id)
+		if err != nil {
+			return nil, err
+		}
+		data.Store(id, dev)
+		return dev, nil
+	}
+	return v.(*Device), nil
+}
+
 // Attach attaches at val(string or int pid) using local device.
 func Attach(val interface{}) (*Session, error) {
 	dev := LocalDevice()
