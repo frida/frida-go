@@ -54,10 +54,10 @@ type Message struct {
 
 // ScriptMessageToMessage returns the parsed Message from the message strign received in
 // script.On("message", func(msg string, data []byte) {}) callback.
-func ScriptMessageToMessage(message string) (*Message, error) {
+func ScriptMessageToMessage(message string) *Message {
 	var m Message
 	if err := json.Unmarshal([]byte(message), &m); err != nil {
-		return nil, err
+		panic(err) // panic here, breaking changes in frida-core
 	}
 	if m.Type != MessageTypeError {
 		var payload map[string]interface{}
@@ -66,5 +66,5 @@ func ScriptMessageToMessage(message string) (*Message, error) {
 			m.IsPayloadMap = true
 		}
 	}
-	return &m, nil
+	return &m
 }
