@@ -153,6 +153,6 @@ func (p *Portal) Clean() {
 //   - "authenticated" with callback as func(connId uint, sessionInfo string) {}
 //   - "subscribe" with callback as func(connId uint) {}
 //   - "message" with callback as func(connId uint, jsonData string, data []byte) {}
-func (p *Portal) On(sigName string, fn interface{}) {
+func (p *Portal) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(p.portal), sigName, fn)
 }

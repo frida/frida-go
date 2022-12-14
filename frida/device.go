@@ -26,7 +26,7 @@ func (d *Device) Name() string {
 }
 
 // DeviceIcon will return the device icon.
-func (d *Device) DeviceIcon() interface{} {
+func (d *Device) DeviceIcon() any {
 	icon := C.frida_device_get_icon(d.device)
 	dt := gPointerToGo((C.gpointer)(icon))
 	return dt
@@ -59,7 +59,7 @@ func (d *Device) IsLost() bool {
 }
 
 // Params returns system parameters of the device
-func (d *Device) Params() (map[string]interface{}, error) {
+func (d *Device) Params() (map[string]any, error) {
 	var err *C.GError
 	ht := C.frida_device_query_system_parameters_sync(d.device, nil, &err)
 	if err != nil {
@@ -338,7 +338,7 @@ func (d *Device) Kill(pid int) error {
 // Attach will attach on specified process name or PID.
 // You can pass the nil as SessionOptions or you can create it if you want
 // the session to persist for specific timeout.
-func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error) {
+func (d *Device) Attach(val any, opts *SessionOptions) (*Session, error) {
 	var pid int
 	switch v := reflect.ValueOf(val); v.Kind() {
 	case reflect.String:
@@ -370,7 +370,7 @@ func (d *Device) Attach(val interface{}, opts *SessionOptions) (*Session, error)
 // InjectLibraryFile will inject the library in the target with path to library specified.
 // Entrypoint is the entrypoint to the library and the data is any data you need to pass
 // to the library.
-func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data string) (uint, error) {
+func (d *Device) InjectLibraryFile(target any, path, entrypoint, data string) (uint, error) {
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
@@ -424,7 +424,7 @@ func (d *Device) InjectLibraryFile(target interface{}, path, entrypoint, data st
 // InjectLibraryBlob will inject the library in the target with byteData path.
 // Entrypoint is the entrypoint to the library and the data is any data you need to pass
 // to the library.
-func (d *Device) InjectLibraryBlob(target interface{}, byteData []byte, entrypoint, data string) (uint, error) {
+func (d *Device) InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error) {
 	var pid int
 	switch v := reflect.ValueOf(target); v.Kind() {
 	case reflect.String:
@@ -507,6 +507,6 @@ func (d *Device) Clean() {
 //   - "output" with callback as func(pid, fd int, data []byte) {}
 //   - "uninjected" with callback as func(id int) {}
 //   - "lost" with callback as func() {}
-func (d *Device) On(sigName string, fn interface{}) {
+func (d *Device) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(d.device), sigName, fn)
 }

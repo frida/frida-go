@@ -57,6 +57,6 @@ func (mon *FileMonitor) Clean() {
 //
 // Signals available are:
 //   - "change" with callback as func(changedFile, otherFile, changeType string) {}
-func (mon *FileMonitor) On(sigName string, fn interface{}) {
+func (mon *FileMonitor) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(mon.fm), sigName, fn)
 }

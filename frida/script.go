@@ -92,17 +92,17 @@ func (f *Script) DisableDebugger() error {
 }
 
 // ExportsCall will try to call fn from the rpc.exports with args provided
-func (f *Script) ExportsCall(fn string, args ...interface{}) interface{} {
+func (f *Script) ExportsCall(fn string, args ...any) any {
 	rpcData := newRPCCall(fn)
 
-	var aIface []interface{}
+	var aIface []any
 	aIface = append(aIface, args...)
 
-	var rpc []interface{}
+	var rpc []any
 	rpc = append(rpc, rpcData...)
 	rpc = append(rpc, aIface)
 
-	ch := make(chan interface{})
+	ch := make(chan any)
 	rpcCalls.Store(rpcData[1], ch)
 
 	bt, _ := json.Marshal(rpc)
@@ -123,7 +123,7 @@ func (f *Script) Clean() {
 // Signals available are:
 //   - "destroyed" with callback as func() {}
 //   - "message" with callback as func(message string, data []byte) {}
-func (f *Script) On(sigName string, fn interface{}) {
+func (f *Script) On(sigName string, fn any) {
 	// hijack message to handle rpc calls
 	if sigName == "message" {
 		f.fn = reflect.ValueOf(fn)
@@ -133,19 +133,19 @@ func (f *Script) On(sigName string, fn interface{}) {
 	}
 }
 
-func getRPCIDFromMessage(message string) (string, interface{}, error) {
-	unmarshalled := make(map[string]interface{})
+func getRPCIDFromMessage(message string) (string, any, error) {
+	unmarshalled := make(map[string]any)
 	if err := json.Unmarshal([]byte(message), &unmarshalled); err != nil {
 		return "", nil, err
 	}
 
 	var rpcID string
-	var ret interface{}
+	var ret any
 
-	loopMap := func(mp map[string]interface{}) {
+	loopMap := func(mp map[string]any) {
 		for _, v := range mp {
 			if reflect.ValueOf(v).Kind() == reflect.Slice {
-				slc := v.([]interface{})
+				slc := v.([]any)
 				rpcID = slc[1].(string)
 				ret = slc[3]
 
@@ -167,7 +167,7 @@ func (f *Script) hijackFn(message string, data []byte) {
 		if !ok {
 			panic("rpc-id not found")
 		}
-		ch := callerCh.(chan interface{})
+		ch := callerCh.(chan any)
 		ch <- ret
 
 	} else {
@@ -183,9 +183,9 @@ func (f *Script) hijackFn(message string, data []byte) {
 	}
 }
 
-func newRPCCall(fnName string) []interface{} {
+func newRPCCall(fnName string) []any {
 	id := uuid.New()
-	dt := []interface{}{
+	dt := []any{
 		"frida:rpc",
 		id.String()[:16],
 		"call",

@@ -171,6 +171,6 @@ func (d *DeviceManager) Clean() {
 //   - "added" with callback as func(device *frida.Device) {}
 //   - "removed" with callback as func(device *frida.Device) {}
 //   - "changed" with callback as func() {}
-func (d *DeviceManager) On(sigName string, fn interface{}) {
+func (d *DeviceManager) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(d.manager), sigName, fn)
 }

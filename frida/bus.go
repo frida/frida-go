@@ -53,6 +53,6 @@ func (b *Bus) Clean() {
 // Signals available are:
 //   - "detached" with callback as func() {}
 //   - "message" with callback as func(message string, data []byte) {}
-func (b *Bus) On(sigName string, fn interface{}) {
+func (b *Bus) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(b.bus), sigName, fn)
 }

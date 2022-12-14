@@ -203,6 +203,6 @@ func (s *Session) Clean() {
 //
 // Signals available are:
 //   - "detached" with callback as func(reason frida.SessionDetachReason, crash *frida.Crash) {}
-func (s *Session) On(sigName string, fn interface{}) {
+func (s *Session) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(s.s), sigName, fn)
 }

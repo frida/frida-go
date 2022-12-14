@@ -92,7 +92,7 @@ func DeviceById(id string) (*Device, error) {
 }
 
 // Attach attaches at val(string or int pid) using local device.
-func Attach(val interface{}) (*Session, error) {
+func Attach(val any) (*Session, error) {
 	dev := LocalDevice()
 	return dev.Attach(val, nil)
 }

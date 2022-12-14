@@ -66,7 +66,7 @@ func (c *Compiler) Clean() {
 //   - "output" with callback as func(bundle string) {}
 //   - "diagnostics" with callback as func(diag string) {}
 //   - "file_changed" with callback as func() {}
-func (c *Compiler) On(sigName string, fn interface{}) {
+func (c *Compiler) On(sigName string, fn any) {
 	// hijack diagnostics and pass only text
 	if sigName == "diagnostics" {
 		c.fn = reflect.ValueOf(fn)
@@ -76,7 +76,7 @@ func (c *Compiler) On(sigName string, fn interface{}) {
 	}
 }
 
-func (c *Compiler) hijackFn(diag map[string]interface{}) {
+func (c *Compiler) hijackFn(diag map[string]any) {
 	text := diag["text"].(string)
 	args := []reflect.Value{reflect.ValueOf(text)}
 	c.fn.Call(args)

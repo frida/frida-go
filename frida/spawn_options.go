@@ -105,7 +105,7 @@ func (s *SpawnOptions) Stdio() Stdio {
 }
 
 // Aux returns aux of the spawn.
-func (s *SpawnOptions) Aux() map[string]interface{} {
+func (s *SpawnOptions) Aux() map[string]any {
 	ht := C.frida_spawn_options_get_aux(s.opts)
 	aux := gHashTableToMap(ht)
 	return aux

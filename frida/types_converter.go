@@ -125,7 +125,7 @@ const (
 	gVariant                 gTypeName = "GVariant"
 )
 
-type marshallerFunc func(val *C.GValue) interface{}
+type marshallerFunc func(val *C.GValue) any
 
 var gTypeString = map[gTypeName]marshallerFunc{
 	gchararray:               getString,
@@ -142,12 +142,12 @@ var gTypeString = map[gTypeName]marshallerFunc{
 	gVariant:                 getGVariant,
 }
 
-func getString(val *C.GValue) interface{} {
+func getString(val *C.GValue) any {
 	cc := C.g_value_get_string(val)
 	return C.GoString(cc)
 }
 
-func getGBytesV(val *C.GValue) interface{} {
+func getGBytesV(val *C.GValue) any {
 	if val != nil {
 		obj := (*C.GBytes)(C.g_value_get_object(val))
 		return getGBytes(obj)
@@ -165,7 +165,7 @@ func getGBytes(obj *C.GBytes) []byte {
 	return []byte{}
 }
 
-func getFridaCrash(val *C.GValue) interface{} {
+func getFridaCrash(val *C.GValue) any {
 	crash := (*C.FridaCrash)(C.g_value_get_object(val))
 
 	return &Crash{
@@ -173,12 +173,12 @@ func getFridaCrash(val *C.GValue) interface{} {
 	}
 }
 
-func getFridaSessionDetachReason(val *C.GValue) interface{} {
+func getFridaSessionDetachReason(val *C.GValue) any {
 	reason := C.g_value_get_int(val)
 	return SessionDetachReason(int(reason))
 }
 
-func getFridaChild(val *C.GValue) interface{} {
+func getFridaChild(val *C.GValue) any {
 	child := (*C.FridaChild)(C.g_value_get_object(val))
 
 	return &Child{
@@ -186,7 +186,7 @@ func getFridaChild(val *C.GValue) interface{} {
 	}
 }
 
-func getFridaDevice(val *C.GValue) interface{} {
+func getFridaDevice(val *C.GValue) any {
 	dev := (*C.FridaDevice)(C.g_value_get_object(val))
 
 	return &Device{
@@ -194,12 +194,12 @@ func getFridaDevice(val *C.GValue) interface{} {
 	}
 }
 
-func getInt(val *C.GValue) interface{} {
+func getInt(val *C.GValue) any {
 	v := C.g_value_get_int(val)
 	return int(v)
 }
 
-func getFm(val *C.GValue) interface{} {
+func getFm(val *C.GValue) any {
 	v := C.int(C.g_value_get_int(val))
 
 	vals := map[int]string{
@@ -216,7 +216,7 @@ func getFm(val *C.GValue) interface{} {
 	return vals[int(v)]
 }
 
-func getGSocketAddress(val *C.GValue) interface{} {
+func getGSocketAddress(val *C.GValue) any {
 	obj := (*C.GSocketAddress)(C.g_value_get_object(val))
 	sz := C.g_socket_address_get_native_size(obj)
 	dest := C.new_addr()
@@ -235,7 +235,7 @@ func getGSocketAddress(val *C.GValue) interface{} {
 	}
 }
 
-func getFridaApplication(val *C.GValue) interface{} {
+func getFridaApplication(val *C.GValue) any {
 	app := (*C.FridaApplication)(C.g_value_get_object(val))
 
 	return &Application{
@@ -243,12 +243,12 @@ func getFridaApplication(val *C.GValue) interface{} {
 	}
 }
 
-func getGVariant(val *C.GValue) interface{} {
+func getGVariant(val *C.GValue) any {
 	v := C.g_value_get_variant(val)
 	return gVariantToGo(v)
 }
 
-func getGoValueFromGValue(val *C.GValue) interface{} {
+func getGoValueFromGValue(val *C.GValue) any {
 	gt := C.get_gvalue_gtype(val)
 
 	f, ok := gTypeString[gTypeName(C.GoString(gt))]
@@ -296,12 +296,12 @@ func goBytesToGBytes(bts []byte) *C.GBytes {
 	return gBytes
 }
 
-func gHashTableToMap(ht *C.GHashTable) map[string]interface{} {
+func gHashTableToMap(ht *C.GHashTable) map[string]any {
 	iter := C.GHashTableIter{}
 	var key C.gpointer
 	var val C.gpointer
 
-	data := make(map[string]interface{})
+	data := make(map[string]any)
 
 	C.g_hash_table_iter_init(&iter, ht)
 
@@ -323,11 +323,11 @@ func gHashTableToMap(ht *C.GHashTable) map[string]interface{} {
 }
 
 type arrData struct {
-	mapper map[string]interface{}
+	mapper map[string]any
 }
 
 type multiData struct {
-	mapper map[string]interface{}
+	mapper map[string]any
 }
 
 //export getSVArray
@@ -384,7 +384,7 @@ func int64FromVariant(variant *C.GVariant) int64 {
 	return int64(val)
 }
 
-func gPointerToGo(ptr C.gpointer) interface{} {
+func gPointerToGo(ptr C.gpointer) any {
 	variant := (*C.GVariant)(ptr)
 	variantType := getVariantStringFormat(variant)
 
@@ -396,14 +396,14 @@ func gPointerToGo(ptr C.gpointer) interface{} {
 	case "x":
 		return int64FromVariant(variant)
 	case "a{sv}":
-		mp := make(map[string]interface{})
+		mp := make(map[string]any)
 		aData := arrData{
 			mapper: mp,
 		}
 		C.iter_array(variant, (*C.char)(unsafe.Pointer(&aData)))
 		return aData.mapper
 	case "aa{sv}":
-		mp := make(map[string]interface{})
+		mp := make(map[string]any)
 		mData := multiData{
 			mapper: mp,
 		}
@@ -414,6 +414,6 @@ func gPointerToGo(ptr C.gpointer) interface{} {
 	}
 }
 
-func gVariantToGo(variant *C.GVariant) interface{} {
+func gVariantToGo(variant *C.GVariant) any {
 	return gPointerToGo((C.gpointer)(variant))
 }

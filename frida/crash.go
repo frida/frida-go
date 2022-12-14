@@ -33,7 +33,7 @@ func (c *Crash) Report() string {
 }
 
 // Params returns the parameters of the crash.
-func (c *Crash) Params() map[string]interface{} {
+func (c *Crash) Params() map[string]any {
 	ht := C.frida_crash_get_parameters(c.crash)
 	params := gHashTableToMap(ht)
 	return params

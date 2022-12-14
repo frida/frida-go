@@ -48,7 +48,7 @@ type Message struct {
 	Filename     string      `json:"fileName,omitempty"`     // populated when type==MessageTypeError
 	LineNumber   int         `json:"lineNumber,omitempty"`   // populated when type==MessageTypeError
 	ColumnNumber int         `json:"columnNumber,omitempty"` // populated when type==MessageTypeError
-	Payload      interface{} `json:"payload,omitempty"`
+	Payload      any         `json:"payload,omitempty"`
 	IsPayloadMap bool
 }
 
@@ -60,7 +60,7 @@ func ScriptMessageToMessage(message string) (*Message, error) {
 		return nil, err
 	}
 	if m.Type != MessageTypeError {
-		var payload map[string]interface{}
+		var payload map[string]any
 		if err := json.Unmarshal([]byte(m.Payload.(string)), &payload); err == nil {
 			m.Payload = payload
 			m.IsPayloadMap = true

@@ -20,7 +20,7 @@ func (p *Process) Name() string {
 }
 
 // Params returns the parameters of the process.
-func (p *Process) Params() map[string]interface{} {
+func (p *Process) Params() map[string]any {
 	ht := C.frida_process_get_parameters(p.proc)
 	params := gHashTableToMap(ht)
 	return params

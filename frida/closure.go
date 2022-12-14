@@ -87,7 +87,7 @@ type funcstack struct {
 	Frames []uintptr
 }
 
-func connectClosure(obj unsafe.Pointer, sigName string, fn interface{}) {
+func connectClosure(obj unsafe.Pointer, sigName string, fn any) {
 	v := reflect.ValueOf(fn)
 
 	if v.Type().Kind() != reflect.Func {
