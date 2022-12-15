@@ -71,10 +71,15 @@ func main() {
 
   fmt.Println("[*] Attaching to Telegram")
   session, err := localDev.Attach("Telegram", nil)
+  if err != nil {
+	  fmt.Println("Error occurred attaching:", err)
+	  os.Exit(1)
+  }
 
   script, err := session.CreateScript(script)
   if err != nil {
-    fmt.Println("Error ocurred creating script:", err)
+    fmt.Println("Error occurred creating script:", err)
+	os.Exit(1)
   }
 
   script.On("message", func(msg string) {
