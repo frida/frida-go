@@ -11,22 +11,33 @@ type Process struct {
 
 // PID returns the PID of the process.
 func (p *Process) PID() int {
-	return int(C.frida_process_get_pid(p.proc))
+	if p.proc != nil {
+		return int(C.frida_process_get_pid(p.proc))
+	}
+	return -1
 }
 
 // Name returns the name of the process.
 func (p *Process) Name() string {
-	return C.GoString(C.frida_process_get_name(p.proc))
+	if p.proc != nil {
+		return C.GoString(C.frida_process_get_name(p.proc))
+	}
+	return ""
 }
 
 // Params returns the parameters of the process.
 func (p *Process) Params() map[string]any {
-	ht := C.frida_process_get_parameters(p.proc)
-	params := gHashTableToMap(ht)
-	return params
+	if p.proc != nil {
+		ht := C.frida_process_get_parameters(p.proc)
+		params := gHashTableToMap(ht)
+		return params
+	}
+	return nil
 }
 
 // Clean will clean the resources held by the process.
 func (p *Process) Clean() {
-	clean(unsafe.Pointer(p.proc), unrefFrida)
+	if p.proc != nil {
+		clean(unsafe.Pointer(p.proc), unrefFrida)
+	}
 }
