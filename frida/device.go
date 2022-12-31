@@ -361,7 +361,7 @@ func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
 
 // Input inputs []bytes into the process with pid specified.
 func (d *Device) Input(pid int, data []byte) error {
-	if err != nil {
+	if d.device != nil {
 		gBytesData := goBytesToGBytes(data)
 		runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
 			clean(unsafe.Pointer(g), unrefGObject)
