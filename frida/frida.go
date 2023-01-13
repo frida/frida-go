@@ -1,4 +1,10 @@
-// Package frida provides golang binding for frida.
+// Package frida provides Go bindings for frida.
+// Some of the provided functionality includes:
+//
+// * Listing devices/applications/processes
+// * Attaching to applications/processes
+// * Fetching information about devices/applications/processes
+
 package frida
 
 /*
