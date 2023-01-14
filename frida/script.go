@@ -3,6 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
+	"context"
 	"encoding/json"
 	"reflect"
 	"runtime"
@@ -97,23 +98,27 @@ func (s *Script) DisableDebugger() error {
 
 // ExportsCall will try to call fn from the rpc.exports with args provided
 func (s *Script) ExportsCall(fn string, args ...any) any {
-	rpcData := newRPCCall(fn)
-
-	var aIface []any
-	aIface = append(aIface, args...)
-
-	var rpc []any
-	rpc = append(rpc, rpcData...)
-	rpc = append(rpc, aIface)
-
-	ch := make(chan any)
-	rpcCalls.Store(rpcData[1], ch)
-
-	bt, _ := json.Marshal(rpc)
-	s.Post(string(bt), nil)
-
+	ch := s.makeExportsCall(fn, args...)
 	ret := <-ch
 	return ret
+}
+
+// ExportsCallWithContext will try to call fn from the rpc.exports with args provided using context provided.
+func (s *Script) ExportsCallWithContext(ctx context.Context, fn string, args ...any) any {
+	ch := s.makeExportsCall(fn, args...)
+
+	for {
+		select {
+		case <-ctx.Done():
+			// because the context is done, we still need to read from the channel
+			go func() {
+				<-ch
+			}()
+			return nil
+		case ret := <-ch:
+			return ret
+		}
+	}
 }
 
 // Clean will clean the resources held by the script.
@@ -174,6 +179,7 @@ func (s *Script) hijackFn(message string, data []byte) {
 		}
 		ch := callerCh.(chan any)
 		ch <- ret
+		close(ch)
 
 	} else {
 		var args []reflect.Value
@@ -198,4 +204,23 @@ func newRPCCall(fnName string) []any {
 	}
 
 	return dt
+}
+
+func (s *Script) makeExportsCall(fn string, args ...any) chan any {
+	rpcData := newRPCCall(fn)
+
+	var aIface []any
+	aIface = append(aIface, args...)
+
+	var rpc []any
+	rpc = append(rpc, rpcData...)
+	rpc = append(rpc, aIface)
+
+	ch := make(chan any)
+	rpcCalls.Store(rpcData[1], ch)
+
+	bt, _ := json.Marshal(rpc)
+	s.Post(string(bt), nil)
+
+	return ch
 }
