@@ -13,24 +13,28 @@ import (
 	"github.com/google/uuid"
 )
 
-var rpcCalls = &sync.Map{}
+var rpcCalls = sync.Map{}
 
 // Script represents loaded string in the memory.
 type Script struct {
-	sc *C.FridaScript
-	fn reflect.Value
+	hasHandler bool
+	sc         *C.FridaScript
+	fn         reflect.Value
 }
 
 // IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
-func (f *Script) IsDestroyed() bool {
-	destroyed := C.frida_script_is_destroyed(f.sc)
+func (s *Script) IsDestroyed() bool {
+	destroyed := C.frida_script_is_destroyed(s.sc)
 	return int(destroyed) == 1
 }
 
 // Load function loads the script into the process.
-func (f *Script) Load() error {
+func (s *Script) Load() error {
+	if !s.hasHandler {
+		s.On("message", func() {})
+	}
 	var err *C.GError
-	C.frida_script_load_sync(f.sc, nil, &err)
+	C.frida_script_load_sync(s.sc, nil, &err)
 	if err != nil {
 		return &FError{err}
 	}
@@ -38,9 +42,9 @@ func (f *Script) Load() error {
 }
 
 // Unload function unload previously loaded script
-func (f *Script) Unload() error {
+func (s *Script) Unload() error {
 	var err *C.GError
-	C.frida_script_unload_sync(f.sc, nil, &err)
+	C.frida_script_unload_sync(s.sc, nil, &err)
 	if err != nil {
 		return &FError{err}
 	}
@@ -48,9 +52,9 @@ func (f *Script) Unload() error {
 }
 
 // Eternalize function will keep the script loaded even after deataching from the process
-func (f *Script) Eternalize() error {
+func (s *Script) Eternalize() error {
 	var err *C.GError
-	C.frida_script_eternalize_sync(f.sc, nil, &err)
+	C.frida_script_eternalize_sync(s.sc, nil, &err)
 	if err != nil {
 		return &FError{err}
 	}
@@ -58,7 +62,7 @@ func (f *Script) Eternalize() error {
 }
 
 // Post sends post to the script.
-func (f *Script) Post(jsonString string, data []byte) {
+func (s *Script) Post(jsonString string, data []byte) {
 	jsonStringC := C.CString(jsonString)
 	defer C.free(unsafe.Pointer(jsonStringC))
 
@@ -66,14 +70,14 @@ func (f *Script) Post(jsonString string, data []byte) {
 	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
 		clean(unsafe.Pointer(g), unrefGObject)
 	})
-	C.frida_script_post(f.sc, jsonStringC, gBytesData)
+	C.frida_script_post(s.sc, jsonStringC, gBytesData)
 	runtime.KeepAlive(gBytesData)
 }
 
 // EnableDebugger function enables debugging on the port specified
-func (f *Script) EnableDebugger(port uint16) error {
+func (s *Script) EnableDebugger(port uint16) error {
 	var err *C.GError
-	C.frida_script_enable_debugger_sync(f.sc, C.guint16(port), nil, &err)
+	C.frida_script_enable_debugger_sync(s.sc, C.guint16(port), nil, &err)
 	if err != nil {
 		return &FError{err}
 	}
@@ -82,9 +86,9 @@ func (f *Script) EnableDebugger(port uint16) error {
 }
 
 // DisableDebugger function disables debugging
-func (f *Script) DisableDebugger() error {
+func (s *Script) DisableDebugger() error {
 	var err *C.GError
-	C.frida_script_disable_debugger_sync(f.sc, nil, &err)
+	C.frida_script_disable_debugger_sync(s.sc, nil, &err)
 	if err != nil {
 		return &FError{err}
 	}
@@ -92,7 +96,7 @@ func (f *Script) DisableDebugger() error {
 }
 
 // ExportsCall will try to call fn from the rpc.exports with args provided
-func (f *Script) ExportsCall(fn string, args ...any) any {
+func (s *Script) ExportsCall(fn string, args ...any) any {
 	rpcData := newRPCCall(fn)
 
 	var aIface []any
@@ -106,15 +110,15 @@ func (f *Script) ExportsCall(fn string, args ...any) any {
 	rpcCalls.Store(rpcData[1], ch)
 
 	bt, _ := json.Marshal(rpc)
-	f.Post(string(bt), nil)
+	s.Post(string(bt), nil)
 
 	ret := <-ch
 	return ret
 }
 
 // Clean will clean the resources held by the script.
-func (f *Script) Clean() {
-	clean(unsafe.Pointer(f.sc), unrefFrida)
+func (s *Script) Clean() {
+	clean(unsafe.Pointer(s.sc), unrefFrida)
 }
 
 // On connects script to specific signals. Once sigName is triggered,
@@ -123,13 +127,14 @@ func (f *Script) Clean() {
 // Signals available are:
 //   - "destroyed" with callback as func() {}
 //   - "message" with callback as func(message string, data []byte) {}
-func (f *Script) On(sigName string, fn any) {
+func (s *Script) On(sigName string, fn any) {
+	s.hasHandler = true
 	// hijack message to handle rpc calls
 	if sigName == "message" {
-		f.fn = reflect.ValueOf(fn)
-		connectClosure(unsafe.Pointer(f.sc), sigName, f.hijackFn)
+		s.fn = reflect.ValueOf(fn)
+		connectClosure(unsafe.Pointer(s.sc), sigName, s.hijackFn)
 	} else {
-		connectClosure(unsafe.Pointer(f.sc), sigName, fn)
+		connectClosure(unsafe.Pointer(s.sc), sigName, fn)
 	}
 }
 
@@ -157,7 +162,7 @@ func getRPCIDFromMessage(message string) (string, any, error) {
 	return rpcID, ret, nil
 }
 
-func (f *Script) hijackFn(message string, data []byte) {
+func (s *Script) hijackFn(message string, data []byte) {
 	if strings.Contains(message, "frida:rpc") {
 		rpcID, ret, err := getRPCIDFromMessage(message)
 		if err != nil {
@@ -172,14 +177,14 @@ func (f *Script) hijackFn(message string, data []byte) {
 
 	} else {
 		var args []reflect.Value
-		switch f.fn.Type().NumIn() {
+		switch s.fn.Type().NumIn() {
 		case 1:
 			args = append(args, reflect.ValueOf(message))
 		case 2:
 			args = append(args, reflect.ValueOf(message))
 			args = append(args, reflect.ValueOf(data))
 		}
-		f.fn.Call(args)
+		s.fn.Call(args)
 	}
 }
 
