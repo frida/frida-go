@@ -114,7 +114,7 @@ func (s *Script) ExportsCallWithContext(ctx context.Context, fn string, args ...
 			go func() {
 				<-ch
 			}()
-			return nil
+			return ErrContextCancelled
 		case ret := <-ch:
 			return ret
 		}
