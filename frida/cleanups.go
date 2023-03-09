@@ -31,9 +31,11 @@ func unrefGObj(obj unsafe.Pointer) {
 }
 
 func clean(obj unsafe.Pointer, cType cleanupType) {
-	fn := cleanups[cType]
-	if fn != nil {
-		fn(obj)
+	if obj != nil {
+		fn := cleanups[cType]
+		if fn != nil {
+			fn(obj)
+		}
 	}
 }
 
