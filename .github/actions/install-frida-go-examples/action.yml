@@ -4,6 +4,6 @@ runs:
   using: composite
   steps:
     - run: |
-        git clone https://github.com/lateralusd/frida-go-examples.git ./frida-go-examples
+        git clone https://github.com/nsecho/frida-go-examples.git ./frida-go-examples
         rm ./frida-go-examples/README.md
       shell: bash
