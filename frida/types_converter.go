@@ -168,9 +168,6 @@ func getGBytes(obj *C.GBytes) []byte {
 func getFridaCrash(val *C.GValue) any {
 	crash := (*C.FridaCrash)(C.g_value_get_object(val))
 
-	if crash == nil {
-		return nil
-	}
 	return &Crash{
 		crash: crash,
 	}
