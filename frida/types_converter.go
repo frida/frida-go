@@ -168,6 +168,9 @@ func getGBytes(obj *C.GBytes) []byte {
 func getFridaCrash(val *C.GValue) any {
 	crash := (*C.FridaCrash)(C.g_value_get_object(val))
 
+	if crash == nil {
+		return nil
+	}
 	return &Crash{
 		crash: crash,
 	}
@@ -265,11 +268,11 @@ func getCharArrayElement(arr **C.char, n int) *C.char {
 }
 
 func cArrayToStringSlice(arr **C.char, length C.int) []string {
-	var s []string
+	s := make([]string, int(length))
 
 	for i := 0; i < int(length); i++ {
 		elem := C.get_char_elem(arr, C.int(i))
-		s = append(s, C.GoString(elem))
+		s[i] = C.GoString(elem)
 	}
 
 	return s
@@ -301,13 +304,14 @@ func gHashTableToMap(ht *C.GHashTable) map[string]any {
 	var key C.gpointer
 	var val C.gpointer
 
-	data := make(map[string]any)
-
 	C.g_hash_table_iter_init(&iter, ht)
 
 	hSize := int(C.g_hash_table_size(ht))
+	var data map[string]any
+	//data := make(map[string]any)
 
 	if hSize >= 1 {
+		data = make(map[string]any, hSize)
 		nx := 1
 		for nx == 1 {
 			nx = int(C.g_hash_table_iter_next(&iter, &key, &val))
