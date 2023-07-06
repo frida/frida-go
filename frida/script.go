@@ -67,12 +67,17 @@ func (s *Script) Post(jsonString string, data []byte) {
 	jsonStringC := C.CString(jsonString)
 	defer C.free(unsafe.Pointer(jsonStringC))
 
-	gBytesData := goBytesToGBytes(data)
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
-	})
-	C.frida_script_post(s.sc, jsonStringC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	if len(data) > 0 {
+		gBytesData := goBytesToGBytes(data)
+
+		runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+			clean(unsafe.Pointer(g), unrefGObject)
+		})
+		C.frida_script_post(s.sc, jsonStringC, gBytesData)
+		runtime.KeepAlive(gBytesData)
+	} else {
+		C.frida_script_post(s.sc, jsonStringC, nil)
+	}
 }
 
 // EnableDebugger function enables debugging on the port specified
