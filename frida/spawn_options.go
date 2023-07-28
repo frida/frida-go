@@ -3,7 +3,6 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -39,10 +38,12 @@ func (s *SpawnOptions) Argv() []string {
 
 // SetEnvp set spawns envp with the envp provided.
 func (s *SpawnOptions) SetEnvp(envp map[string]string) {
-	var sl []string
+	i := 0
+	sl := make([]string, len(envp))
 
 	for k, v := range envp {
-		sl = append(sl, fmt.Sprintf("%s=%s", k, v))
+		sl[i] = k + "=" + v
+		i++
 	}
 
 	arr, sz := stringSliceToCharArr(sl)
@@ -61,10 +62,12 @@ func (s *SpawnOptions) Envp() []string {
 
 // SetEnv set spawns env with the env provided.
 func (s *SpawnOptions) SetEnv(env map[string]string) {
-	var sl []string
+	i := 0
+	sl := make([]string, len(env))
 
 	for k, v := range env {
-		sl = append(sl, fmt.Sprintf("%s=%s", k, v))
+		sl[i] = k + "=" + v
+		i++
 	}
 
 	arr, sz := stringSliceToCharArr(sl)

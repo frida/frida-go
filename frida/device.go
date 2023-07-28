@@ -140,11 +140,12 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Appli
 			return nil, &FError{err}
 		}
 
-		var apps []*Application
+		appListSize := int(C.frida_application_list_size(appList))
+		apps := make([]*Application, appListSize)
 
-		for i := 0; i < int(C.frida_application_list_size(appList)); i++ {
+		for i := 0; i < appListSize; i++ {
 			app := C.frida_application_list_get(appList, C.gint(i))
-			apps = append(apps, &Application{app})
+			apps[i] = &Application{app}
 		}
 
 		sort.Slice(apps, func(i, j int) bool {
@@ -250,11 +251,12 @@ func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 			return nil, &FError{err}
 		}
 
-		var procs []*Process
+		procListSize := int(C.frida_process_list_size(procList))
+		procs := make([]*Process, procListSize)
 
-		for i := 0; i < int(C.frida_process_list_size(procList)); i++ {
+		for i := 0; i < procListSize; i++ {
 			proc := C.frida_process_list_get(procList, C.gint(i))
-			procs = append(procs, &Process{proc})
+			procs[i] = &Process{proc}
 		}
 
 		clean(unsafe.Pointer(procList), unrefFrida)
@@ -298,11 +300,12 @@ func (d *Device) EnumeratePendingSpawn() ([]*Spawn, error) {
 			return nil, &FError{err}
 		}
 
-		var spawns []*Spawn
+		spawnListSize := int(C.frida_spawn_list_size(spawnList))
+		spawns := make([]*Spawn, spawnListSize)
 
-		for i := 0; i < int(C.frida_spawn_list_size(spawnList)); i++ {
+		for i := 0; i < spawnListSize; i++ {
 			spawn := C.frida_spawn_list_get(spawnList, C.gint(i))
-			spawns = append(spawns, &Spawn{spawn})
+			spawns[i] = &Spawn{spawn}
 		}
 
 		clean(unsafe.Pointer(spawnList), unrefFrida)
@@ -320,18 +323,16 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 			return nil, &FError{err}
 		}
 
-		var childs []*Child
+		childListSize := int(C.frida_child_list_size(childList))
+		children := make([]*Child, childListSize)
 
-		for i := 0; i < int(C.frida_child_list_size(childList)); i++ {
-			chld := C.frida_child_list_get(childList, C.gint(i))
-			c := &Child{
-				child: chld,
-			}
-			childs = append(childs, c)
+		for i := 0; i < childListSize; i++ {
+			child := C.frida_child_list_get(childList, C.gint(i))
+			children[i] = &Child{child}
 		}
 
 		clean(unsafe.Pointer(childList), unrefFrida)
-		return childs, nil
+		return children, nil
 	}
 	return nil, errors.New("could not enumerate pending children for nil device")
 }

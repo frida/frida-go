@@ -214,12 +214,18 @@ func newRPCCall(fnName string) []any {
 func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 	rpcData := newRPCCall(fn)
 
-	var aIface []any
-	aIface = append(aIface, args...)
+	aIface := make([]any, len(args))
+	copy(aIface, args)
 
-	var rpc []any
-	rpc = append(rpc, rpcData...)
-	rpc = append(rpc, aIface)
+	ct := 0
+	rpc := make([]any, len(rpcData)+len(aIface))
+
+	for i := 0; i < len(rpcData); i++ {
+		rpc[ct] = rpcData[i]
+		ct++
+	}
+
+	rpc[ct] = aIface
 
 	ch := make(chan any)
 	rpcCalls.Store(rpcData[1], ch)

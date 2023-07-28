@@ -36,12 +36,12 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 		return nil, &FError{err}
 	}
 
-	var devices []*Device
 	numDevices := int(C.frida_device_list_size(deviceList))
+	var devices []*Device
 
 	for i := 0; i < numDevices; i++ {
 		device := C.frida_device_list_get(deviceList, C.gint(i))
-		devices = append(devices, &Device{device: device})
+		devices[i] = &Device{device}
 	}
 
 	clean(unsafe.Pointer(deviceList), unrefFrida)
