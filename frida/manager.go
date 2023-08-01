@@ -37,7 +37,7 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 	}
 
 	numDevices := int(C.frida_device_list_size(deviceList))
-	var devices []*Device
+	devices := make([]*Device, numDevices)
 
 	for i := 0; i < numDevices; i++ {
 		device := C.frida_device_list_get(deviceList, C.gint(i))
