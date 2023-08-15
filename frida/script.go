@@ -225,7 +225,9 @@ func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 		ct++
 	}
 
-	rpc[ct] = aIface
+	if len(aIface) > 0 {
+		rpc[ct] = aIface
+	}
 
 	ch := make(chan any)
 	rpcCalls.Store(rpcData[1], ch)
