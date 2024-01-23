@@ -3,7 +3,26 @@ package frida
 //#include <frida-core.h>
 import "C"
 
-import "unsafe"
+import (
+	"unsafe"
+)
+
+// DeviceManagerI is the device DeviceManager interface
+type DeviceManagerI interface {
+	Close() error
+	EnumerateDevices() ([]*Device, error)
+	LocalDevice() (*Device, error)
+	USBDevice() (*Device, error)
+	RemoteDevice() (*Device, error)
+	DeviceByID(id string) (*Device, error)
+	DeviceByType(devType DeviceType) (*Device, error)
+	FindDeviceByID(id string) (*Device, error)
+	FindDeviceByType(devType DeviceType) (*Device, error)
+	AddRemoteDevice(address string, remoteOpts *RemoteDeviceOptions) (*Device, error)
+	RemoveRemoteDevice(address string) error
+	Clean()
+	On(sigName string, fn any)
+}
 
 // DeviceManager is the main structure which holds on devices available to Frida
 // Single instance of the DeviceManager is created when you call frida.Attach() or frida.LocalDevice().
@@ -14,8 +33,7 @@ type DeviceManager struct {
 // NewDeviceManager returns new frida device manager.
 func NewDeviceManager() *DeviceManager {
 	manager := C.frida_device_manager_new()
-	mgr := &DeviceManager{manager}
-	return mgr
+	return &DeviceManager{manager}
 }
 
 // Close method will close current manager.
