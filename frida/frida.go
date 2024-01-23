@@ -35,14 +35,14 @@ func Version() string {
 	return C.GoString(C.frida_version_string())
 }
 
-func getDeviceManager() *DeviceManager {
+func getDeviceManager() DeviceManager {
 	v, ok := data.Load("mgr")
 	if !ok {
 		mgr := NewDeviceManager()
 		data.Store("mgr", mgr)
 		return mgr
 	}
-	return v.(*DeviceManager)
+	return v.(DeviceManager)
 }
 
 // LocalDevice is a wrapper around DeviceByType(DeviceTypeLocal).

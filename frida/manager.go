@@ -5,21 +5,39 @@ import "C"
 
 import "unsafe"
 
-// DeviceManager is the main structure which holds on devices available to Frida
-// Single instance of the DeviceManager is created when you call frida.Attach() or frida.LocalDevice().
-type DeviceManager struct {
+// DeviceManager is the device DeviceManager interface
+type DeviceManager interface {
+	Close() error
+	EnumerateDevices() ([]*Device, error)
+	LocalDevice() (*Device, error)
+	USBDevice() (*Device, error)
+	RemoteDevice() (*Device, error)
+	DeviceByID(id string) (*Device, error)
+	DeviceByType(devType DeviceType) (*Device, error)
+	FindDeviceByID(id string) (*Device, error)
+	FindDeviceByType(devType DeviceType) (*Device, error)
+	AddRemoteDevice(address string, remoteOpts *RemoteDeviceOptions) (*Device, error)
+	RemoveRemoteDevice(address string) error
+	Clean()
+	On(sigName string, fn any)
+
+	getManager() *C.FridaDeviceManager
+}
+
+// deviceManager is the main structure which holds on devices available to Frida
+// Single instance of the deviceManager is created when you call frida.Attach() or frida.LocalDevice().
+type deviceManager struct {
 	manager *C.FridaDeviceManager
 }
 
 // NewDeviceManager returns new frida device manager.
-func NewDeviceManager() *DeviceManager {
+func NewDeviceManager() DeviceManager {
 	manager := C.frida_device_manager_new()
-	mgr := &DeviceManager{manager}
-	return mgr
+	return &deviceManager{manager}
 }
 
 // Close method will close current manager.
-func (d *DeviceManager) Close() error {
+func (d *deviceManager) Close() error {
 	var err *C.GError
 	C.frida_device_manager_close_sync(d.manager, nil, &err)
 	if err != nil {
@@ -29,7 +47,7 @@ func (d *DeviceManager) Close() error {
 }
 
 // EnumerateDevices will return all connected devices.
-func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
+func (d *deviceManager) EnumerateDevices() ([]*Device, error) {
 	var err *C.GError
 	deviceList := C.frida_device_manager_enumerate_devices_sync(d.manager, nil, &err)
 	if err != nil {
@@ -49,22 +67,22 @@ func (d *DeviceManager) EnumerateDevices() ([]*Device, error) {
 }
 
 // LocalDevice returns the device with type DeviceTypeLocal.
-func (d *DeviceManager) LocalDevice() (*Device, error) {
+func (d *deviceManager) LocalDevice() (*Device, error) {
 	return d.DeviceByType(DeviceTypeLocal)
 }
 
 // USBDevice returns the device with type DeviceTypeUsb.
-func (d *DeviceManager) USBDevice() (*Device, error) {
+func (d *deviceManager) USBDevice() (*Device, error) {
 	return d.DeviceByType(DeviceTypeUsb)
 }
 
 // RemoteDevice returns the device with type DeviceTypeRemote.
-func (d *DeviceManager) RemoteDevice() (*Device, error) {
+func (d *deviceManager) RemoteDevice() (*Device, error) {
 	return d.DeviceByType(DeviceTypeRemote)
 }
 
 // DeviceByID will return device with id passed or an error if it can't find any.
-func (d *DeviceManager) DeviceByID(id string) (*Device, error) {
+func (d *deviceManager) DeviceByID(id string) (*Device, error) {
 	idC := C.CString(id)
 	defer C.free(unsafe.Pointer(idC))
 
@@ -79,7 +97,7 @@ func (d *DeviceManager) DeviceByID(id string) (*Device, error) {
 }
 
 // DeviceByType will return device or an error by device type specified.
-func (d *DeviceManager) DeviceByType(devType DeviceType) (*Device, error) {
+func (d *deviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_type_sync(d.manager,
 		C.FridaDeviceType(devType),
@@ -93,7 +111,7 @@ func (d *DeviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 }
 
 // FindDeviceByID will try to find the device by id specified
-func (d *DeviceManager) FindDeviceByID(id string) (*Device, error) {
+func (d *deviceManager) FindDeviceByID(id string) (*Device, error) {
 	devID := C.CString(id)
 	defer C.free(unsafe.Pointer(devID))
 
@@ -113,7 +131,7 @@ func (d *DeviceManager) FindDeviceByID(id string) (*Device, error) {
 }
 
 // FindDeviceByType will try to find the device by device type specified
-func (d *DeviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
+func (d *deviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
 	timeout := C.gint(defaultDeviceTimeout)
 
 	var err *C.GError
@@ -130,7 +148,7 @@ func (d *DeviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
 }
 
 // AddRemoteDevice add a remote device from the provided address with remoteOpts populated
-func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDeviceOptions) (*Device, error) {
+func (d *deviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDeviceOptions) (*Device, error) {
 	addressC := C.CString(address)
 	defer C.free(unsafe.Pointer(addressC))
 
@@ -144,7 +162,7 @@ func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDevice
 }
 
 // RemoveRemoteDevice removes remote device available at address
-func (d *DeviceManager) RemoveRemoteDevice(address string) error {
+func (d *deviceManager) RemoveRemoteDevice(address string) error {
 	addressC := C.CString(address)
 	defer C.free(unsafe.Pointer(addressC))
 
@@ -160,7 +178,7 @@ func (d *DeviceManager) RemoveRemoteDevice(address string) error {
 }
 
 // Clean will clean the resources held by the manager.
-func (d *DeviceManager) Clean() {
+func (d *deviceManager) Clean() {
 	clean(unsafe.Pointer(d.manager), unrefFrida)
 }
 
@@ -171,6 +189,10 @@ func (d *DeviceManager) Clean() {
 //   - "added" with callback as func(device *frida.Device) {}
 //   - "removed" with callback as func(device *frida.Device) {}
 //   - "changed" with callback as func() {}
-func (d *DeviceManager) On(sigName string, fn any) {
+func (d *deviceManager) On(sigName string, fn any) {
 	connectClosure(unsafe.Pointer(d.manager), sigName, fn)
+}
+
+func (d *deviceManager) getManager() *C.FridaDeviceManager {
+	return d.manager
 }
