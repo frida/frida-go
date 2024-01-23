@@ -17,7 +17,7 @@ type Compiler struct {
 // NewCompiler creates new compiler.
 func NewCompiler() *Compiler {
 	mgr := getDeviceManager()
-	cc := C.frida_compiler_new(mgr.manager)
+	cc := C.frida_compiler_new(mgr.getManager())
 
 	return &Compiler{
 		cc: cc,

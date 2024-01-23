@@ -62,10 +62,10 @@ func (d *Device) Bus() *Bus {
 }
 
 // Manager returns device manager for the device.
-func (d *Device) Manager() *DeviceManager {
+func (d *Device) Manager() DeviceManager {
 	if d.device != nil {
 		mgr := C.frida_device_get_manager(d.device)
-		return &DeviceManager{mgr}
+		return &deviceManager{mgr}
 	}
 	return nil
 }
