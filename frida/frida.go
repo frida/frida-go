@@ -4,7 +4,6 @@
 // * Listing devices/applications/processes
 // * Attaching to applications/processes
 // * Fetching information about devices/applications/processes
-
 package frida
 
 /*
@@ -78,7 +77,7 @@ func USBDevice() *Device {
 }
 
 // DeviceById tries to get the device by id on the default manager
-func DeviceById(id string) (*Device, error) {
+func DeviceByID(id string) (*Device, error) {
 	mgr := getDeviceManager()
 	v, ok := data.Load(id)
 	if !ok {
