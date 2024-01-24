@@ -82,6 +82,7 @@ func (d *deviceManager) RemoteDevice() (*Device, error) {
 }
 
 // DeviceByID will return device with id passed or an error if it can't find any.
+// Note: the caller must call EnumerateDevices() to get devices that are of type usb
 func (d *deviceManager) DeviceByID(id string) (*Device, error) {
 	idC := C.CString(id)
 	defer C.free(unsafe.Pointer(idC))
@@ -97,6 +98,7 @@ func (d *deviceManager) DeviceByID(id string) (*Device, error) {
 }
 
 // DeviceByType will return device or an error by device type specified.
+// Note: the caller must call EnumerateDevices() to get devices that are of type usb
 func (d *deviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_type_sync(d.manager,
@@ -111,6 +113,7 @@ func (d *deviceManager) DeviceByType(devType DeviceType) (*Device, error) {
 }
 
 // FindDeviceByID will try to find the device by id specified
+// Note: the caller must call EnumerateDevices() to get devices that are of type usb
 func (d *deviceManager) FindDeviceByID(id string) (*Device, error) {
 	devID := C.CString(id)
 	defer C.free(unsafe.Pointer(devID))
@@ -131,6 +134,7 @@ func (d *deviceManager) FindDeviceByID(id string) (*Device, error) {
 }
 
 // FindDeviceByType will try to find the device by device type specified
+// Note: the caller must call EnumerateDevices() to get devices that are of type usb
 func (d *deviceManager) FindDeviceByType(devType DeviceType) (*Device, error) {
 	timeout := C.gint(defaultDeviceTimeout)
 
