@@ -189,7 +189,7 @@ func getFridaChild(val *C.GValue) any {
 func getFridaDevice(val *C.GValue) any {
 	dev := (*C.FridaDevice)(C.g_value_get_object(val))
 
-	return &DeviceImpl{
+	return &Device{
 		device: dev,
 	}
 }

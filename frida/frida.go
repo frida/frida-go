@@ -34,30 +34,30 @@ func Version() string {
 	return C.GoString(C.frida_version_string())
 }
 
-func getDeviceManager() DeviceManager {
+func getDeviceManager() *DeviceManager {
 	v, ok := data.Load("mgr")
 	if !ok {
 		mgr := NewDeviceManager()
 		data.Store("mgr", mgr)
 		return mgr
 	}
-	return v.(*deviceManager)
+	return v.(*DeviceManager)
 }
 
 // LocalDevice is a wrapper around DeviceByType(DeviceTypeLocal).
-func LocalDevice() Device {
+func LocalDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
 	if !ok {
 		dev, _ := mgr.DeviceByType(DeviceTypeLocal)
 		data.Store("localDevice", dev)
-		return dev
+		return dev.(*Device)
 	}
-	return v.(*DeviceImpl)
+	return v.(*Device)
 }
 
 // USBDevice is a wrapper around DeviceByType(DeviceTypeUsb).
-func USBDevice() Device {
+func USBDevice() *Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("usbDevice")
 	if !ok {
@@ -71,13 +71,13 @@ func USBDevice() Device {
 			return nil
 		}
 		data.Store("usbDevice", dev)
-		return dev
+		return dev.(*Device)
 	}
-	return v.(*DeviceImpl)
+	return v.(*Device)
 }
 
 // DeviceByID tries to get the device by id on the default manager
-func DeviceByID(id string) (Device, error) {
+func DeviceByID(id string) (*Device, error) {
 	mgr := getDeviceManager()
 	v, ok := data.Load(id)
 	if !ok {
@@ -91,9 +91,9 @@ func DeviceByID(id string) (Device, error) {
 			return nil, err
 		}
 		data.Store(id, dev)
-		return dev, nil
+		return v.(*Device), nil
 	}
-	return v.(*DeviceImpl), nil
+	return v.(*Device), nil
 }
 
 // Attach attaches at val(string or int pid) using local device.
