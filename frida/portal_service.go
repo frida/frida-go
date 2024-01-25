@@ -22,9 +22,9 @@ func NewPortal(clusterParams, controlParams *EndpointParameters) *Portal {
 }
 
 // Device returns portal device.
-func (p *Portal) Device() *Device {
+func (p *Portal) Device() Device {
 	dev := C.frida_portal_service_get_device(p.portal)
-	return &Device{dev}
+	return &DeviceImpl{dev}
 }
 
 // ClusterParams returns the cluster parameters for the portal.

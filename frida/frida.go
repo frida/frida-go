@@ -41,11 +41,11 @@ func getDeviceManager() DeviceManager {
 		data.Store("mgr", mgr)
 		return mgr
 	}
-	return v.(DeviceManager)
+	return v.(*deviceManager)
 }
 
 // LocalDevice is a wrapper around DeviceByType(DeviceTypeLocal).
-func LocalDevice() *Device {
+func LocalDevice() Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("localDevice")
 	if !ok {
@@ -53,11 +53,11 @@ func LocalDevice() *Device {
 		data.Store("localDevice", dev)
 		return dev
 	}
-	return v.(*Device)
+	return v.(*DeviceImpl)
 }
 
 // USBDevice is a wrapper around DeviceByType(DeviceTypeUsb).
-func USBDevice() *Device {
+func USBDevice() Device {
 	mgr := getDeviceManager()
 	v, ok := data.Load("usbDevice")
 	if !ok {
@@ -73,11 +73,11 @@ func USBDevice() *Device {
 		data.Store("usbDevice", dev)
 		return dev
 	}
-	return v.(*Device)
+	return v.(*DeviceImpl)
 }
 
 // DeviceByID tries to get the device by id on the default manager
-func DeviceByID(id string) (*Device, error) {
+func DeviceByID(id string) (Device, error) {
 	mgr := getDeviceManager()
 	v, ok := data.Load(id)
 	if !ok {
@@ -93,7 +93,7 @@ func DeviceByID(id string) (*Device, error) {
 		data.Store(id, dev)
 		return dev, nil
 	}
-	return v.(*Device), nil
+	return v.(*DeviceImpl), nil
 }
 
 // Attach attaches at val(string or int pid) using local device.
