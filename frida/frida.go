@@ -34,14 +34,14 @@ func Version() string {
 	return C.GoString(C.frida_version_string())
 }
 
-func getDeviceManager() DeviceManager {
+func getDeviceManager() *DeviceManager {
 	v, ok := data.Load("mgr")
 	if !ok {
 		mgr := NewDeviceManager()
 		data.Store("mgr", mgr)
 		return mgr
 	}
-	return v.(DeviceManager)
+	return v.(*DeviceManager)
 }
 
 // LocalDevice is a wrapper around DeviceByType(DeviceTypeLocal).
@@ -51,7 +51,7 @@ func LocalDevice() *Device {
 	if !ok {
 		dev, _ := mgr.DeviceByType(DeviceTypeLocal)
 		data.Store("localDevice", dev)
-		return dev
+		return dev.(*Device)
 	}
 	return v.(*Device)
 }
@@ -71,7 +71,7 @@ func USBDevice() *Device {
 			return nil
 		}
 		data.Store("usbDevice", dev)
-		return dev
+		return dev.(*Device)
 	}
 	return v.(*Device)
 }
@@ -91,7 +91,7 @@ func DeviceByID(id string) (*Device, error) {
 			return nil, err
 		}
 		data.Store(id, dev)
-		return dev, nil
+		return v.(*Device), nil
 	}
 	return v.(*Device), nil
 }

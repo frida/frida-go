@@ -10,7 +10,38 @@ import (
 	"unsafe"
 )
 
-// Device represents FridaDevice struct from frida-core
+type DeviceInt interface {
+	ID() string
+	Name() string
+	DeviceIcon() any
+	Bus() *Bus
+	Manager() *DeviceManager
+	IsLost() bool
+	Params() (map[string]any, error)
+	FrontmostApplication(scope Scope) (*Application, error)
+	EnumerateApplications(identifier string, scope Scope) ([]*Application, error)
+	ProcessByPID(pid int, scope Scope) (*Process, error)
+	ProcessByName(name string, scope Scope) (*Process, error)
+	FindProcessByPID(pid int, scope Scope) (*Process, error)
+	FindProcessByName(name string, scope Scope) (*Process, error)
+	EnumerateProcesses(scope Scope) ([]*Process, error)
+	EnableSpawnGating() error
+	DisableSpawnGating() error
+	EnumeratePendingSpawn() ([]*Spawn, error)
+	EnumeratePendingChildren() ([]*Child, error)
+	Spawn(name string, opts *SpawnOptions) (int, error)
+	Input(pid int, data []byte) error
+	Resume(pid int) error
+	Kill(pid int) error
+	Attach(val any, opts *SessionOptions) (*Session, error)
+	InjectLibraryFile(target any, path, entrypoint, data string) (uint, error)
+	InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error)
+	OpenChannel(address string) (*IOStream, error)
+	Clean()
+	On(sigName string, fn any)
+}
+
+// Device represents Device struct from frida-core
 type Device struct {
 	device *C.FridaDevice
 }
@@ -62,10 +93,10 @@ func (d *Device) Bus() *Bus {
 }
 
 // Manager returns device manager for the device.
-func (d *Device) Manager() DeviceManager {
+func (d *Device) Manager() *DeviceManager {
 	if d.device != nil {
 		mgr := C.frida_device_get_manager(d.device)
-		return &deviceManager{mgr}
+		return &DeviceManager{mgr}
 	}
 	return nil
 }
