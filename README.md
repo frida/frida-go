@@ -20,9 +20,6 @@ Supported OS:
 - [x] Android
 - [ ] Windows
 
-The reason why windows is not supported it the problem compiling frida-core with mingw because mingw(needed by cgo) can't link with MSVC .lib files.
-If you manage to do it, feel free to submit your PR, also if you found any issues please submit new issue or create PR with the fix.
-
 # Small example
 ```golang
 package main
