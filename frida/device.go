@@ -37,6 +37,7 @@ type DeviceInt interface {
 	InjectLibraryFile(target any, path, entrypoint, data string) (uint, error)
 	InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error)
 	OpenChannel(address string) (*IOStream, error)
+	OpenService(address string) (*Service, error)
 	Clean()
 	On(sigName string, fn any)
 }
@@ -601,6 +602,21 @@ func (d *Device) OpenChannel(address string) (*IOStream, error) {
 		return NewIOStream(stream), nil
 	}
 	return nil, errors.New("could not open channel for nil device")
+}
+
+func (d *Device) OpenService(address string) (*Service, error) {
+	if d.device != nil {
+		addrC := C.CString(address)
+		defer C.free(unsafe.Pointer(addrC))
+
+		var err *C.GError
+		svc := C.frida_device_open_service_sync(d.device, addrC, nil, &err)
+		if err != nil {
+			return nil, &FError{err}
+		}
+		return &Service{svc}, nil
+	}
+	return nil, errors.New("could not open service")
 }
 
 // Clean will clean the resources held by the device.
