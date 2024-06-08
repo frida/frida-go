@@ -14,6 +14,7 @@ type DeviceInt interface {
 	ID() string
 	Name() string
 	DeviceIcon() any
+	DeviceType() DeviceType
 	Bus() *Bus
 	Manager() *DeviceManager
 	IsLost() bool
