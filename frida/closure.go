@@ -75,7 +75,7 @@ func goMarshalCls(gclosure *C.GClosure, returnValue *C.GValue, nParams C.guint,
 	fnArgs := make([]reflect.Value, fnCountArgs)
 
 	for i := 0; i < fnCountArgs; i++ {
-		goV := getGoValueFromGValue(&gvalues[i+1])
+		goV := GValueToGo(&gvalues[i+1])
 		fnArgs[i] = reflect.ValueOf(goV).Convert(fnType.In(i))
 	}
 
