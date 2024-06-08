@@ -38,3 +38,26 @@ func (s *Service) Request(req any) (any, error) {
 
 	return gVariantToGo(resp), nil
 }
+
+func (s *Service) Activate() error {
+	var err *C.GError
+	C.frida_service_activate_sync(s.service, nil, &err)
+	if err != nil {
+		return &FError{err}
+	}
+	return nil
+}
+
+func (s *Service) Cancel() error {
+	var err *C.GError
+	C.frida_service_cancel_sync(s.service, nil, &err)
+	if err != nil {
+		return &FError{err}
+	}
+	return nil
+}
+
+func (s *Service) IsClosed() bool {
+	val := C.frida_service_is_closed(s.service)
+	return int(val) != 0
+}
