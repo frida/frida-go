@@ -24,11 +24,6 @@ func parse(v reflect.Value) *C.GVariant {
 		v = v.Elem()
 	}
 	switch v.Kind() {
-	case reflect.Array, reflect.Slice:
-		for i := 0; i < v.Len(); i++ {
-			parse(v.Index(i))
-		}
-		return C.g_variant_new_string(C.CString("array"))
 	case reflect.Map:
 		var builder C.GVariantBuilder
 		C.g_variant_builder_init(&builder, C.G_VARIANT_TYPE_VARDICT)
