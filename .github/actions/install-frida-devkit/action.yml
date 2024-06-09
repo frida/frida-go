@@ -16,6 +16,8 @@ runs:
     - run: |
         mkdir /tmp/frida-core-devkit && cd /tmp/frida-core-devkit
         wget https://github.com/frida/frida/releases/download/${{ inputs.version }}/frida-core-devkit-${{ inputs.version }}-${{ inputs.os }}-${{ inputs.arch }}.tar.xz -O - | tar --extract --xz
+        sudo mkdir -p /usr/local/include
+        sudo mkdir -p /usr/local/lib
         sudo cp frida-core.h /usr/local/include/frida-core.h
         sudo cp libfrida-core.a /usr/local/lib/libfrida-core.a
       shell: bash
