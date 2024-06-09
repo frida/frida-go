@@ -17,7 +17,7 @@ jobs:
             os: linux
             frida_version: "16.3.3"
           - runs_on: macos-latest
-            arch: x86_64
+            arch: arm64
             os: macos
             frida_version: "16.3.3"
     runs-on: ${{ matrix.runs_on }}
