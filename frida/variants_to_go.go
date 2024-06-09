@@ -130,9 +130,9 @@ func gVariantToGo(variant *C.GVariant) any {
 		C.iter_double_array_of_dicts(variant, (*C.char)(unsafe.Pointer(&gm)))
 		return gm.m
 	case "ay": // array of bytes
-		var n_elements C.int
-		cBytes := C.read_byte_array(variant, &n_elements)
-		return C.GoBytes(unsafe.Pointer(cBytes), n_elements)
+		var nElements C.int
+		cBytes := C.read_byte_array(variant, &nElements)
+		return C.GoBytes(unsafe.Pointer(cBytes), nElements)
 	default:
 		return fmt.Sprintf("type \"%s\" not implemented", variantType)
 	}
