@@ -12,7 +12,7 @@ jobs:
       matrix:
         arch: [x86_64]
         os: [linux]
-        frida_version: ["16.0.13"]
+        frida_version: ["16.3.3"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
