@@ -53,7 +53,7 @@ static char* read_byte_array(GVariant *variant, int * n_elements)
 	guint8 * array = NULL;
 
 	array = g_variant_get_fixed_array (variant,
-									   (gsize)n_elements,
+									   (gsize *)n_elements,
 									   sizeof(guint8));
 	return (char*)array;
 }
