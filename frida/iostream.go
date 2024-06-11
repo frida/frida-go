@@ -1,14 +1,6 @@
 package frida
 
-/*#include <frida-core.h>
-
-static void *
-read_input_stream(GInputStream *stream, gsize count, gsize *bytes_read, GError **error) {
-	void * buffer;
-	*bytes_read = g_input_stream_read(stream,buffer,count,NULL,&error);
-	return buffer;
-}
-*/
+//#include <frida-core.h>
 import "C"
 import (
 	"io"
