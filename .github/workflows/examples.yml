@@ -35,6 +35,6 @@ jobs:
           os: ${{ matrix.os }}
           version: ${{ matrix.frida_version }}
       - run: |
-          for example in ./frida-go-examples/*; do
+          gcc -v; for example in ./frida-go-examples/*; do
             go build "$example"
           done
