@@ -18,7 +18,7 @@ type DeviceInt interface {
 	Bus() *Bus
 	Manager() *DeviceManager
 	IsLost() bool
-	Params() (map[string]any, error)
+	Params(opts ...OptFunc) (map[string]any, error)
 	FrontmostApplication(scope Scope) (*Application, error)
 	EnumerateApplications(identifier string, scope Scope) ([]*Application, error)
 	ProcessByPID(pid int, scope Scope) (*Process, error)
@@ -113,19 +113,27 @@ func (d *Device) IsLost() bool {
 }
 
 // Params returns system parameters of the device
-func (d *Device) Params() (map[string]any, error) {
-	if d.device != nil {
-		var err *C.GError
-		ht := C.frida_device_query_system_parameters_sync(d.device, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-
-		params := gHashTableToMap(ht)
-
-		return params, nil
+func (d *Device) Params(opts ...OptFunc) (map[string]any, error) {
+	o := &options{}
+	for _, opt := range opts { // <--- this all can become a helper func
+		opt(o)
 	}
-	return nil, errors.New("could not obtain params for nil device")
+
+	return d.params(o)
+}
+
+func (d *Device) params(opts *options) (map[string]any, error) {
+	if d.device == nil {
+		return nil, errors.New("could not obtain params for nil device")
+	}
+
+	var err *C.GError
+	ht := C.frida_device_query_system_parameters_sync(d.device, opts.cancellable, &err)
+	if err != nil {
+		return nil, &FError{err}
+	}
+
+	return gHashTableToMap(ht), nil
 }
 
 // FrontmostApplication will return the frontmost application or the application in focus
