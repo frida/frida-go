@@ -23,6 +23,7 @@ func (c *Cancellable) Cancel() {
 	C.g_cancellable_cancel(c.cancellable)
 }
 
+
 func (c *Cancellable) Unref() {
 	C.g_object_unref((C.gpointer)(c.cancellable))
 }
