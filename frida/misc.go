@@ -23,8 +23,21 @@ func (c *Cancellable) Cancel() {
 	C.g_cancellable_cancel(c.cancellable)
 }
 
+
+func (c *Cancellable) Unref() {
+	C.g_object_unref((C.gpointer)(c.cancellable))
+}
+
 type options struct {
 	cancellable *C.GCancellable
+}
+
+func setupOptions(opts []OptFunc) options {
+	o := &options{}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return *o
 }
 
 type OptFunc func(o *options)

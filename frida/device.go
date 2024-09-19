@@ -3,6 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
+	"context"
 	"errors"
 	"reflect"
 	"runtime"
@@ -20,7 +21,7 @@ type DeviceInt interface {
 	IsLost() bool
 	Params(opts ...OptFunc) (map[string]any, error)
 	FrontmostApplication(scope Scope) (*Application, error)
-	EnumerateApplications(identifier string, scope Scope) ([]*Application, error)
+	EnumerateApplications(identifier string, scope Scope, opts ...OptFunc) ([]*Application, error)
 	ProcessByPID(pid int, scope Scope) (*Process, error)
 	ProcessByName(name string, scope Scope) (*Process, error)
 	FindProcessByPID(pid int, scope Scope) (*Process, error)
@@ -112,17 +113,43 @@ func (d *Device) IsLost() bool {
 	return false
 }
 
+func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
+	paramC := make(chan map[string]any, 1)
+	errC := make(chan error, 1)
+
+	c := NewCancellable()
+	go func() {
+		params, err := d.Params(WithCancel(c))
+		if err != nil {
+			errC <- err
+			return
+		}
+		paramC <- params
+	}()
+
+	for {
+		select {
+		case <-ctx.Done():
+			c.Cancel()
+			return nil, ErrContextCancelled
+		case params := <-paramC:
+			c.Unref()
+			return params, nil
+		case err := <-errC:
+			c.Unref()
+			return nil, err
+		}
+
+	}
+}
+
 // Params returns system parameters of the device
 func (d *Device) Params(opts ...OptFunc) (map[string]any, error) {
-	o := &options{}
-	for _, opt := range opts { // <--- this all can become a helper func
-		opt(o)
-	}
-
+	o := setupOptions(opts)
 	return d.params(o)
 }
 
-func (d *Device) params(opts *options) (map[string]any, error) {
+func (d *Device) params(opts options) (map[string]any, error) {
 	if d.device == nil {
 		return nil, errors.New("could not obtain params for nil device")
 	}
@@ -163,42 +190,48 @@ func (d *Device) FrontmostApplication(scope Scope) (*Application, error) {
 	return nil, errors.New("could not obtain frontmost app for nil device")
 }
 
+func (d *Device) EnumerateApplications(identifier string, scope Scope, opts ...OptFunc) ([]*Application, error) {
+	o := setupOptions(opts)
+	return d.enumerateApplications(identifier, scope, o)
+}
+
 // EnumerateApplications will return slice of applications on the device
-func (d *Device) EnumerateApplications(identifier string, scope Scope) ([]*Application, error) {
+func (d *Device) enumerateApplications(identifier string, scope Scope, opts options) ([]*Application, error) {
 	if d.device != nil {
-		queryOpts := C.frida_application_query_options_new()
-		C.frida_application_query_options_set_scope(queryOpts, C.FridaScope(scope))
-
-		if identifier != "" {
-			identifierC := C.CString(identifier)
-			defer C.free(unsafe.Pointer(identifierC))
-			C.frida_application_query_options_select_identifier(queryOpts, identifierC)
-		}
-
-		var err *C.GError
-		appList := C.frida_device_enumerate_applications_sync(d.device, queryOpts, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-
-		appListSize := int(C.frida_application_list_size(appList))
-		apps := make([]*Application, appListSize)
-
-		for i := 0; i < appListSize; i++ {
-			app := C.frida_application_list_get(appList, C.gint(i))
-			apps[i] = &Application{app}
-		}
-
-		sort.Slice(apps, func(i, j int) bool {
-			return apps[i].PID() > apps[j].PID()
-		})
-
-		clean(unsafe.Pointer(queryOpts), unrefFrida)
-		clean(unsafe.Pointer(appList), unrefFrida)
-
-		return apps, nil
+		return nil, errors.New("could not enumerate applications for nil device")
 	}
-	return nil, errors.New("could not enumerate applications for nil device")
+
+	queryOpts := C.frida_application_query_options_new()
+	C.frida_application_query_options_set_scope(queryOpts, C.FridaScope(scope))
+
+	if identifier != "" {
+		identifierC := C.CString(identifier)
+		defer C.free(unsafe.Pointer(identifierC))
+		C.frida_application_query_options_select_identifier(queryOpts, identifierC)
+	}
+
+	var err *C.GError
+	appList := C.frida_device_enumerate_applications_sync(d.device, queryOpts, opts.cancellable, &err)
+	if err != nil {
+		return nil, &FError{err}
+	}
+
+	appListSize := int(C.frida_application_list_size(appList))
+	apps := make([]*Application, appListSize)
+
+	for i := 0; i < appListSize; i++ {
+		app := C.frida_application_list_get(appList, C.gint(i))
+		apps[i] = &Application{app}
+	}
+
+	sort.Slice(apps, func(i, j int) bool {
+		return apps[i].PID() > apps[j].PID()
+	})
+
+	clean(unsafe.Pointer(queryOpts), unrefFrida)
+	clean(unsafe.Pointer(appList), unrefFrida)
+
+	return apps, nil
 }
 
 // ProcessByPID returns the process by passed pid.
