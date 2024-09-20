@@ -1,8 +1,7 @@
 package frida
 
-import "C"
-
-/*#include <frida-core.h>
+/*
+#include <frida-core.h>
 #include <stdio.h>
 
 static GVariant * new_variant_from_c_string(const char * val, FridaService * svc)
