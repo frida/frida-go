@@ -13,16 +13,23 @@ type Cancellable struct {
 	cancellable *C.GCancellable
 }
 
+// NewCancellable wraps GCancellable
+// used to provide ability to cancel frida funcs.
+// Reminder that the caller must either `Cancellable.Cancel()` or
+// `Cancellable.Unref()` to unref the underlying C data.
 func NewCancellable() *Cancellable {
 	return &Cancellable{
 		cancellable: C.g_cancellable_new(),
 	}
 }
 
+// Cancel sends the cancel signal to GCancellable
+// as well unrefs
 func (c *Cancellable) Cancel() {
 	C.g_cancellable_cancel(c.cancellable)
 }
 
+// Unref unrefs the wrapped GCancellable
 func (c *Cancellable) Unref() {
 	C.g_object_unref((C.gpointer)(c.cancellable))
 }
@@ -41,6 +48,12 @@ func setupOptions(opts []OptFunc) options {
 
 type OptFunc func(o *options)
 
+// WithCancel is inteded to be used a varadic option.
+// Provides the ability to to pass GCancellable to
+// frida functions.
+//
+// Note: it is advisable to use the `FuncCtx`
+// version of functions rather than handling this yourself.
 func WithCancel(cancel *Cancellable) OptFunc {
 	return func(o *options) {
 		o.cancellable = cancel.cancellable
@@ -48,12 +61,9 @@ func WithCancel(cancel *Cancellable) OptFunc {
 }
 
 func handleGError(gErr *C.GError) error {
-<<<<<<< HEAD
 	if gErr == nil {
 		return nil
 	}
-=======
->>>>>>> 3fa8527 (BREAKING: remove FError in favor of returning a plain golang error)
 	defer clean(unsafe.Pointer(gErr), unrefGError)
 	return fmt.Errorf("FError: %s", C.GoString(gErr.message))
 }
