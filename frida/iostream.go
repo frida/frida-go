@@ -35,10 +35,7 @@ func (ios *IOStream) IsClosed() bool {
 func (ios *IOStream) Close() error {
 	var err *C.GError
 	C.g_io_stream_close(ios.stream, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Read tries to read len(data) bytes into the data from the stream.
@@ -58,7 +55,7 @@ func (ios *IOStream) Read(data *[]byte) (int, error) {
 		nil,
 		&err)
 	if err != nil {
-		return -1, &FError{err}
+		return -1, handleGError(err)
 	}
 
 	if int(read) == 0 {
@@ -87,10 +84,7 @@ func (ios *IOStream) ReadAll(count int) ([]byte, error) {
 		&bytesRead,
 		nil,
 		&err)
-	if err != nil {
-		return nil, &FError{err}
-	}
-	return C.GoBytes(unsafe.Pointer(buf), C.int(bytesRead)), nil
+	return C.GoBytes(unsafe.Pointer(buf), C.int(bytesRead)), handleGError(err)
 }
 
 // Write tries to write len(data) bytes to the stream.
@@ -106,10 +100,7 @@ func (ios *IOStream) Write(data []byte) (int, error) {
 		count,
 		nil,
 		&err)
-	if err != nil {
-		return 0, &FError{err}
-	}
-	return int(written), nil
+	return int(written), handleGError(err)
 }
 
 // WriteAll tries to write all the data provided.
@@ -125,10 +116,7 @@ func (ios *IOStream) WriteAll(data []byte) error {
 		count,
 		nil,
 		&err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Clean will clean resources held by the iostream.

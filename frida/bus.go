@@ -23,10 +23,7 @@ func (b *Bus) IsDetached() bool {
 func (b *Bus) Attach() error {
 	var err *C.GError
 	C.frida_bus_attach_sync(b.bus, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Post send(post) msg to the device.

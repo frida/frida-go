@@ -84,11 +84,8 @@ func gTLSCertificateFromFile(pempath string) (*Certificate, error) {
 
 	var err *C.GError
 	gTLSCert := C.g_tls_certificate_new_from_file(cert, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return &Certificate{gTLSCert}, nil
+	return &Certificate{gTLSCert}, handleGError(err)
 }
 
 func gFileFromPath(assetPath string) *C.GFile {

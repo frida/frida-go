@@ -36,30 +36,21 @@ func (s *Script) Load() error {
 	}
 	var err *C.GError
 	C.frida_script_load_sync(s.sc, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Unload function unload previously loaded script
 func (s *Script) Unload() error {
 	var err *C.GError
 	C.frida_script_unload_sync(s.sc, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Eternalize function will keep the script loaded even after deataching from the process
 func (s *Script) Eternalize() error {
 	var err *C.GError
 	C.frida_script_eternalize_sync(s.sc, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Post sends post to the script.
@@ -84,21 +75,15 @@ func (s *Script) Post(jsonString string, data []byte) {
 func (s *Script) EnableDebugger(port uint16) error {
 	var err *C.GError
 	C.frida_script_enable_debugger_sync(s.sc, C.guint16(port), nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
 
-	return nil
+	return handleGError(err)
 }
 
 // DisableDebugger function disables debugging
 func (s *Script) DisableDebugger() error {
 	var err *C.GError
 	C.frida_script_disable_debugger_sync(s.sc, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // ExportsCall will try to call fn from the rpc.exports with args provided

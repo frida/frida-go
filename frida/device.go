@@ -139,7 +139,6 @@ func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
 			c.Unref()
 			return nil, err
 		}
-
 	}
 }
 
@@ -156,11 +155,8 @@ func (d *Device) params(opts options) (map[string]any, error) {
 
 	var err *C.GError
 	ht := C.frida_device_query_system_parameters_sync(d.device, opts.cancellable, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return gHashTableToMap(ht), nil
+	return gHashTableToMap(ht), handleGError(err)
 }
 
 // FrontmostApplication will return the frontmost application or the application in focus
@@ -178,7 +174,7 @@ func (d *Device) FrontmostApplication(scope Scope) (*Application, error) {
 			nil,
 			&err)
 		if err != nil {
-			return nil, &FError{err}
+			return nil, handleGError(err)
 		}
 
 		if app.application == nil {
@@ -197,7 +193,7 @@ func (d *Device) EnumerateApplications(identifier string, scope Scope, opts ...O
 
 // EnumerateApplications will return slice of applications on the device
 func (d *Device) enumerateApplications(identifier string, scope Scope, opts options) ([]*Application, error) {
-	if d.device != nil {
+	if d.device == nil {
 		return nil, errors.New("could not enumerate applications for nil device")
 	}
 
@@ -213,7 +209,7 @@ func (d *Device) enumerateApplications(identifier string, scope Scope, opts opti
 	var err *C.GError
 	appList := C.frida_device_enumerate_applications_sync(d.device, queryOpts, opts.cancellable, &err)
 	if err != nil {
-		return nil, &FError{err}
+		return nil, handleGError(err)
 	}
 
 	appListSize := int(C.frida_application_list_size(appList))
@@ -236,80 +232,71 @@ func (d *Device) enumerateApplications(identifier string, scope Scope, opts opti
 
 // ProcessByPID returns the process by passed pid.
 func (d *Device) ProcessByPID(pid int, scope Scope) (*Process, error) {
-	if d.device != nil {
-		opts := C.frida_process_match_options_new()
-		C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
-		C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
-		defer clean(unsafe.Pointer(opts), unrefFrida)
-
-		var err *C.GError
-		proc := C.frida_device_get_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Process{proc}, nil
+	if d.device == nil {
+		return nil, errors.New("could not obtain process for nil device")
 	}
-	return nil, errors.New("could not obtain process for nil device")
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
+
+	var err *C.GError
+	proc := C.frida_device_get_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
+	return &Process{proc}, handleGError(err)
 }
 
 // ProcessByName returns the process by passed name.
 func (d *Device) ProcessByName(name string, scope Scope) (*Process, error) {
-	if d.device != nil {
-		nameC := C.CString(name)
-		defer C.free(unsafe.Pointer(nameC))
-
-		opts := C.frida_process_match_options_new()
-		C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
-		C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
-		defer clean(unsafe.Pointer(opts), unrefFrida)
-
-		var err *C.GError
-		proc := C.frida_device_get_process_by_name_sync(d.device, nameC, opts, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Process{proc}, nil
+	if d.device == nil {
+		return nil, errors.New("could not obtain process for nil device")
 	}
-	return nil, errors.New("could not obtain process for nil device")
+	nameC := C.CString(name)
+	defer C.free(unsafe.Pointer(nameC))
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
+
+	var err *C.GError
+	proc := C.frida_device_get_process_by_name_sync(d.device, nameC, opts, nil, &err)
+	return &Process{proc}, handleGError(err)
 }
 
 // FindProcessByPID will try to find the process with given pid.
 func (d *Device) FindProcessByPID(pid int, scope Scope) (*Process, error) {
-	if d.device != nil {
-		opts := C.frida_process_match_options_new()
-		C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
-		C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
-		defer clean(unsafe.Pointer(opts), unrefFrida)
-
-		var err *C.GError
-		proc := C.frida_device_find_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Process{proc}, nil
+	if d.device == nil {
+		return nil, errors.New("could not find process for nil device")
 	}
-	return nil, errors.New("could not find process for nil device")
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
+
+	var err *C.GError
+	proc := C.frida_device_find_process_by_pid_sync(d.device, C.guint(pid), opts, nil, &err)
+	return &Process{proc}, handleGError(err)
 }
 
 // FindProcessByName will try to find the process with name specified.
 func (d *Device) FindProcessByName(name string, scope Scope) (*Process, error) {
-	if d.device != nil {
-		nameC := C.CString(name)
-		defer C.free(unsafe.Pointer(nameC))
-
-		opts := C.frida_process_match_options_new()
-		C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
-		C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
-		defer clean(unsafe.Pointer(opts), unrefFrida)
-
-		var err *C.GError
-		proc := C.frida_device_find_process_by_name_sync(d.device, nameC, opts, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Process{proc}, nil
+	if d.device == nil {
+		return nil, errors.New("could not find process for nil device")
 	}
-	return nil, errors.New("could not find process for nil device")
+
+	nameC := C.CString(name)
+	defer C.free(unsafe.Pointer(nameC))
+
+	opts := C.frida_process_match_options_new()
+	C.frida_process_match_options_set_timeout(opts, C.gint(defaultProcessTimeout))
+	C.frida_process_match_options_set_scope(opts, C.FridaScope(scope))
+	defer clean(unsafe.Pointer(opts), unrefFrida)
+
+	var err *C.GError
+	proc := C.frida_device_find_process_by_name_sync(d.device, nameC, opts, nil, &err)
+	return &Process{proc}, handleGError(err)
 }
 
 // EnumerateProcesses will slice of processes running with scope provided
@@ -322,7 +309,7 @@ func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 		var err *C.GError
 		procList := C.frida_device_enumerate_processes_sync(d.device, opts, nil, &err)
 		if err != nil {
-			return nil, &FError{err}
+			return nil, handleGError(err)
 		}
 
 		procListSize := int(C.frida_process_list_size(procList))
@@ -341,28 +328,24 @@ func (d *Device) EnumerateProcesses(scope Scope) ([]*Process, error) {
 
 // EnableSpawnGating will enable spawn gating on the device.
 func (d *Device) EnableSpawnGating() error {
-	if d.device != nil {
-		var err *C.GError
-		C.frida_device_enable_spawn_gating_sync(d.device, nil, &err)
-		if err != nil {
-			return &FError{err}
-		}
-		return nil
+	if d.device == nil {
+		return errors.New("could not enable spawn gating for nil device")
 	}
-	return errors.New("could not enable spawn gating for nil device")
+
+	var err *C.GError
+	C.frida_device_enable_spawn_gating_sync(d.device, nil, &err)
+	return handleGError(err)
 }
 
 // DisableSpawnGating will disable spawn gating on the device.
 func (d *Device) DisableSpawnGating() error {
-	if d.device != nil {
-		var err *C.GError
-		C.frida_device_disable_spawn_gating_sync(d.device, nil, &err)
-		if err != nil {
-			return &FError{err}
-		}
-		return nil
+	if d.device == nil {
+		return errors.New("could not disable spawn gating for nil device")
 	}
-	return errors.New("could not disable spawn gating for nil device")
+
+	var err *C.GError
+	C.frida_device_disable_spawn_gating_sync(d.device, nil, &err)
+	return handleGError(err)
 }
 
 // EnumeratePendingSpawn will return the slice of pending spawns.
@@ -371,7 +354,7 @@ func (d *Device) EnumeratePendingSpawn() ([]*Spawn, error) {
 		var err *C.GError
 		spawnList := C.frida_device_enumerate_pending_spawn_sync(d.device, nil, &err)
 		if err != nil {
-			return nil, &FError{err}
+			return nil, handleGError(err)
 		}
 
 		spawnListSize := int(C.frida_spawn_list_size(spawnList))
@@ -394,7 +377,7 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 		var err *C.GError
 		childList := C.frida_device_enumerate_pending_children_sync(d.device, nil, &err)
 		if err != nil {
-			return nil, &FError{err}
+			return nil, handleGError(err)
 		}
 
 		childListSize := int(C.frida_child_list_size(childList))
@@ -413,252 +396,227 @@ func (d *Device) EnumeratePendingChildren() ([]*Child, error) {
 
 // Spawn will spawn an application or binary.
 func (d *Device) Spawn(name string, opts *SpawnOptions) (int, error) {
-	if d.device != nil {
-		var opt *C.FridaSpawnOptions = nil
-		if opts != nil {
-			opt = opts.opts
-		}
-		defer clean(unsafe.Pointer(opt), unrefFrida)
-
-		nameC := C.CString(name)
-		defer C.free(unsafe.Pointer(nameC))
-
-		var err *C.GError
-		pid := C.frida_device_spawn_sync(d.device, nameC, opt, nil, &err)
-		if err != nil {
-			return -1, &FError{err}
-		}
-
-		return int(pid), nil
+	if d.device == nil {
+		return -1, errors.New("could not spawn for nil device")
 	}
-	return -1, errors.New("could not spawn for nil device")
+
+	var opt *C.FridaSpawnOptions = nil
+	if opts != nil {
+		opt = opts.opts
+	}
+	defer clean(unsafe.Pointer(opt), unrefFrida)
+
+	nameC := C.CString(name)
+	defer C.free(unsafe.Pointer(nameC))
+
+	var err *C.GError
+	pid := C.frida_device_spawn_sync(d.device, nameC, opt, nil, &err)
+
+	return int(pid), handleGError(err)
 }
 
 // Input inputs []bytes into the process with pid specified.
 func (d *Device) Input(pid int, data []byte) error {
-	if d.device != nil {
-		gBytesData := goBytesToGBytes(data)
-		runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-			clean(unsafe.Pointer(g), unrefGObject)
-		})
+	if d.device == nil {
+		return errors.New("could not input bytes into nil device")
 
-		var err *C.GError
-		C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
-		runtime.KeepAlive(gBytesData)
-		if err != nil {
-			return &FError{err}
-		}
-		return nil
 	}
-	return errors.New("could not input bytes into nil device")
+	gBytesData := goBytesToGBytes(data)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		clean(unsafe.Pointer(g), unrefGObject)
+	})
+
+	var err *C.GError
+	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
+	runtime.KeepAlive(gBytesData)
+	return handleGError(err)
 }
 
 // Resume will resume the process with pid.
 func (d *Device) Resume(pid int) error {
-	if d.device != nil {
-		var err *C.GError
-		C.frida_device_resume_sync(d.device, C.guint(pid), nil, &err)
-		if err != nil {
-			return &FError{err}
-		}
-		return nil
+	if d.device == nil {
+		return errors.New("could not resume for nil device")
 	}
-	return errors.New("could not resume for nil device")
+	var err *C.GError
+	C.frida_device_resume_sync(d.device, C.guint(pid), nil, &err)
+	return handleGError(err)
 }
 
 // Kill kills process with pid specified.
 func (d *Device) Kill(pid int) error {
-	if d.device != nil {
-		var err *C.GError
-		C.frida_device_kill_sync(d.device, C.guint(pid), nil, &err)
-		if err != nil {
-			return &FError{err}
-		}
-		return nil
+	if d.device == nil {
+		return errors.New("could not kill for nil device")
 	}
-	return errors.New("could not kill for nil device")
+	var err *C.GError
+	C.frida_device_kill_sync(d.device, C.guint(pid), nil, &err)
+	return handleGError(err)
 }
 
 // Attach will attach on specified process name or PID.
 // You can pass the nil as SessionOptions or you can create it if you want
 // the session to persist for specific timeout.
 func (d *Device) Attach(val any, opts *SessionOptions) (*Session, error) {
-	if d.device != nil {
-		var pid int
-		switch v := reflect.ValueOf(val); v.Kind() {
-		case reflect.String:
-			proc, err := d.ProcessByName(val.(string), ScopeMinimal)
-			if err != nil {
-				return nil, err
-			}
-			pid = proc.PID()
-		case reflect.Int:
-			pid = val.(int)
-		default:
-			return nil, errors.New("expected name of app/process or PID")
-		}
-
-		var opt *C.FridaSessionOptions = nil
-		if opts != nil {
-			opt = opts.opts
-			defer clean(unsafe.Pointer(opt), unrefFrida)
-		}
-
-		var err *C.GError
-		s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Session{s}, nil
+	if d.device == nil {
+		return nil, errors.New("could not attach for nil device")
 	}
-	return nil, errors.New("could not attach for nil device")
+	var pid int
+	switch v := reflect.ValueOf(val); v.Kind() {
+	case reflect.String:
+		proc, err := d.ProcessByName(val.(string), ScopeMinimal)
+		if err != nil {
+			return nil, err
+		}
+		pid = proc.PID()
+	case reflect.Int:
+		pid = val.(int)
+	default:
+		return nil, errors.New("expected name of app/process or PID")
+	}
+
+	var opt *C.FridaSessionOptions = nil
+	if opts != nil {
+		opt = opts.opts
+		defer clean(unsafe.Pointer(opt), unrefFrida)
+	}
+
+	var err *C.GError
+	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
+	return &Session{s}, handleGError(err)
 }
 
 // InjectLibraryFile will inject the library in the target with path to library specified.
 // Entrypoint is the entrypoint to the library and the data is any data you need to pass
 // to the library.
 func (d *Device) InjectLibraryFile(target any, path, entrypoint, data string) (uint, error) {
-	if d.device != nil {
-		var pid int
-		switch v := reflect.ValueOf(target); v.Kind() {
-		case reflect.String:
-			proc, err := d.ProcessByName(target.(string), ScopeMinimal)
-			if err != nil {
-				return 0, err
-			}
-			pid = proc.PID()
-		case reflect.Int:
-			pid = target.(int)
-		default:
-			return 0, errors.New("expected name of app/process or PID")
-		}
-
-		if path == "" {
-			return 0, errors.New("you need to provide path to library")
-		}
-
-		var pathC *C.char
-		var entrypointC *C.char = nil
-		var dataC *C.char = nil
-
-		pathC = C.CString(path)
-		defer C.free(unsafe.Pointer(pathC))
-
-		if entrypoint != "" {
-			entrypointC = C.CString(entrypoint)
-			defer C.free(unsafe.Pointer(entrypointC))
-		}
-
-		if data != "" {
-			dataC = C.CString(data)
-			defer C.free(unsafe.Pointer(dataC))
-		}
-
-		var err *C.GError
-		id := C.frida_device_inject_library_file_sync(d.device,
-			C.guint(pid),
-			pathC,
-			entrypointC,
-			dataC,
-			nil,
-			&err)
-		if err != nil {
-			return 0, &FError{err}
-		}
-
-		return uint(id), nil
+	if d.device == nil {
+		return 0, errors.New("could not inject library for nil device")
 	}
-	return 0, errors.New("could not inject library for nil device")
+	var pid int
+	switch v := reflect.ValueOf(target); v.Kind() {
+	case reflect.String:
+		proc, err := d.ProcessByName(target.(string), ScopeMinimal)
+		if err != nil {
+			return 0, err
+		}
+		pid = proc.PID()
+	case reflect.Int:
+		pid = target.(int)
+	default:
+		return 0, errors.New("expected name of app/process or PID")
+	}
+
+	if path == "" {
+		return 0, errors.New("you need to provide path to library")
+	}
+
+	var pathC *C.char
+	var entrypointC *C.char = nil
+	var dataC *C.char = nil
+
+	pathC = C.CString(path)
+	defer C.free(unsafe.Pointer(pathC))
+
+	if entrypoint != "" {
+		entrypointC = C.CString(entrypoint)
+		defer C.free(unsafe.Pointer(entrypointC))
+	}
+
+	if data != "" {
+		dataC = C.CString(data)
+		defer C.free(unsafe.Pointer(dataC))
+	}
+
+	var err *C.GError
+	id := C.frida_device_inject_library_file_sync(d.device,
+		C.guint(pid),
+		pathC,
+		entrypointC,
+		dataC,
+		nil,
+		&err)
+
+	return uint(id), handleGError(err)
 }
 
 // InjectLibraryBlob will inject the library in the target with byteData path.
 // Entrypoint is the entrypoint to the library and the data is any data you need to pass
 // to the library.
 func (d *Device) InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error) {
-	if d.device != nil {
-		var pid int
-		switch v := reflect.ValueOf(target); v.Kind() {
-		case reflect.String:
-			proc, err := d.ProcessByName(target.(string), ScopeMinimal)
-			if err != nil {
-				return 0, err
-			}
-			pid = proc.PID()
-		case reflect.Int:
-			pid = target.(int)
-		default:
-			return 0, errors.New("expected name of app/process or PID")
-		}
-
-		if len(byteData) == 0 {
-			return 0, errors.New("you need to provide byteData")
-		}
-
-		var entrypointC *C.char = nil
-		var dataC *C.char = nil
-
-		if entrypoint != "" {
-			entrypointC = C.CString(entrypoint)
-			defer C.free(unsafe.Pointer(entrypointC))
-		}
-
-		if data != "" {
-			dataC = C.CString(data)
-			defer C.free(unsafe.Pointer(dataC))
-		}
-
-		gBytesData := goBytesToGBytes(byteData)
-		runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-			defer clean(unsafe.Pointer(g), unrefGObject)
-		})
-
-		var err *C.GError
-		id := C.frida_device_inject_library_blob_sync(d.device,
-			C.guint(pid),
-			gBytesData,
-			entrypointC,
-			dataC,
-			nil,
-			&err)
-		runtime.KeepAlive(gBytesData)
-		if err != nil {
-			return 0, &FError{err}
-		}
-
-		return uint(id), nil
+	if d.device == nil {
+		return 0, errors.New("could not inject library blob for nil device")
 	}
-	return 0, errors.New("could not inject library blob for nil device")
+	var pid int
+	switch v := reflect.ValueOf(target); v.Kind() {
+	case reflect.String:
+		proc, err := d.ProcessByName(target.(string), ScopeMinimal)
+		if err != nil {
+			return 0, err
+		}
+		pid = proc.PID()
+	case reflect.Int:
+		pid = target.(int)
+	default:
+		return 0, errors.New("expected name of app/process or PID")
+	}
+
+	if len(byteData) == 0 {
+		return 0, errors.New("you need to provide byteData")
+	}
+
+	var entrypointC *C.char = nil
+	var dataC *C.char = nil
+
+	if entrypoint != "" {
+		entrypointC = C.CString(entrypoint)
+		defer C.free(unsafe.Pointer(entrypointC))
+	}
+
+	if data != "" {
+		dataC = C.CString(data)
+		defer C.free(unsafe.Pointer(dataC))
+	}
+
+	gBytesData := goBytesToGBytes(byteData)
+	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
+		defer clean(unsafe.Pointer(g), unrefGObject)
+	})
+
+	var err *C.GError
+	id := C.frida_device_inject_library_blob_sync(d.device,
+		C.guint(pid),
+		gBytesData,
+		entrypointC,
+		dataC,
+		nil,
+		&err)
+	runtime.KeepAlive(gBytesData)
+
+	return uint(id), handleGError(err)
 }
 
 // OpenChannel open channel with the address and returns the IOStream
 func (d *Device) OpenChannel(address string) (*IOStream, error) {
-	if d.device != nil {
-		addressC := C.CString(address)
-		defer C.free(unsafe.Pointer(addressC))
-
-		var err *C.GError
-		stream := C.frida_device_open_channel_sync(d.device, addressC, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return NewIOStream(stream), nil
+	if d.device == nil {
+		return nil, errors.New("could not open channel for nil device")
 	}
-	return nil, errors.New("could not open channel for nil device")
+	addressC := C.CString(address)
+	defer C.free(unsafe.Pointer(addressC))
+
+	var err *C.GError
+	stream := C.frida_device_open_channel_sync(d.device, addressC, nil, &err)
+	return NewIOStream(stream), handleGError(err)
 }
 
 func (d *Device) OpenService(address string) (*Service, error) {
-	if d.device != nil {
-		addrC := C.CString(address)
-		defer C.free(unsafe.Pointer(addrC))
-
-		var err *C.GError
-		svc := C.frida_device_open_service_sync(d.device, addrC, nil, &err)
-		if err != nil {
-			return nil, &FError{err}
-		}
-		return &Service{svc}, nil
+	if d.device == nil {
+		return nil, errors.New("could not open service")
 	}
-	return nil, errors.New("could not open service")
+	addrC := C.CString(address)
+	defer C.free(unsafe.Pointer(addrC))
+
+	var err *C.GError
+	svc := C.frida_device_open_service_sync(d.device, addrC, nil, &err)
+	return &Service{svc}, handleGError(err)
 }
 
 // Clean will clean the resources held by the device.

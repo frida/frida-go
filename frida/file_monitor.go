@@ -31,20 +31,14 @@ func (mon *FileMonitor) Path() string {
 func (mon *FileMonitor) Enable() error {
 	var err *C.GError
 	C.frida_file_monitor_enable_sync(mon.fm, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Disable disables file monitoring.
 func (mon *FileMonitor) Disable() error {
 	var err *C.GError
 	C.frida_file_monitor_disable_sync(mon.fm, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Clean will clean the resources held by the file monitor.
