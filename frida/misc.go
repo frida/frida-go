@@ -48,9 +48,12 @@ func WithCancel(cancel *Cancellable) OptFunc {
 }
 
 func handleGError(gErr *C.GError) error {
+<<<<<<< HEAD
 	if gErr == nil {
 		return nil
 	}
+=======
+>>>>>>> 3fa8527 (BREAKING: remove FError in favor of returning a plain golang error)
 	defer clean(unsafe.Pointer(gErr), unrefGError)
 	return fmt.Errorf("FError: %s", C.GoString(gErr.message))
 }
