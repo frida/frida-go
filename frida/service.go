@@ -29,31 +29,22 @@ type Service struct {
 func (s *Service) Request(req any) (any, error) {
 	variant := goToGVariant(req)
 
-	var gerr *C.GError
-	resp := C.frida_service_request_sync(s.service, variant, nil, &gerr)
-	if gerr != nil {
-		return nil, &FError{gerr}
-	}
+	var err *C.GError
+	resp := C.frida_service_request_sync(s.service, variant, nil, &err)
 
-	return gVariantToGo(resp), nil
+	return gVariantToGo(resp), handleGError(err)
 }
 
 func (s *Service) Activate() error {
 	var err *C.GError
 	C.frida_service_activate_sync(s.service, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 func (s *Service) Cancel() error {
 	var err *C.GError
 	C.frida_service_cancel_sync(s.service, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 func (s *Service) IsClosed() bool {

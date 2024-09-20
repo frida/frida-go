@@ -40,10 +40,7 @@ func NewDeviceManager() *DeviceManager {
 func (d *DeviceManager) Close() error {
 	var err *C.GError
 	C.frida_device_manager_close_sync(d.manager, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // EnumerateDevices will return all connected devices.
@@ -51,7 +48,7 @@ func (d *DeviceManager) EnumerateDevices() ([]DeviceInt, error) {
 	var err *C.GError
 	deviceList := C.frida_device_manager_enumerate_devices_sync(d.manager, nil, &err)
 	if err != nil {
-		return nil, &FError{err}
+		return nil, handleGError(err)
 	}
 
 	numDevices := int(C.frida_device_list_size(deviceList))
@@ -91,10 +88,7 @@ func (d *DeviceManager) DeviceByID(id string) (DeviceInt, error) {
 
 	var err *C.GError
 	device := C.frida_device_manager_get_device_by_id_sync(d.manager, idC, timeout, nil, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
-	return &Device{device: device}, nil
+	return &Device{device: device}, handleGError(err)
 }
 
 // DeviceByType will return device or an error by device type specified.
@@ -106,10 +100,7 @@ func (d *DeviceManager) DeviceByType(devType DeviceType) (DeviceInt, error) {
 		1,
 		nil,
 		&err)
-	if err != nil {
-		return nil, &FError{err}
-	}
-	return &Device{device: device}, nil
+	return &Device{device: device}, handleGError(err)
 }
 
 // FindDeviceByID will try to find the device by id specified
@@ -126,11 +117,8 @@ func (d *DeviceManager) FindDeviceByID(id string) (DeviceInt, error) {
 		timeout,
 		nil,
 		&err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return &Device{device: device}, nil
+	return &Device{device: device}, handleGError(err)
 }
 
 // FindDeviceByType will try to find the device by device type specified
@@ -144,11 +132,8 @@ func (d *DeviceManager) FindDeviceByType(devType DeviceType) (DeviceInt, error) 
 		C.gint(timeout),
 		nil,
 		&err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return &Device{device: device}, nil
+	return &Device{device: device}, handleGError(err)
 }
 
 // AddRemoteDevice add a remote device from the provided address with remoteOpts populated
@@ -158,11 +143,8 @@ func (d *DeviceManager) AddRemoteDevice(address string, remoteOpts *RemoteDevice
 
 	var err *C.GError
 	device := C.frida_device_manager_add_remote_device_sync(d.manager, addressC, remoteOpts.opts, nil, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return &Device{device: device}, nil
+	return &Device{device: device}, handleGError(err)
 }
 
 // RemoveRemoteDevice removes remote device available at address
@@ -175,10 +157,7 @@ func (d *DeviceManager) RemoveRemoteDevice(address string) error {
 		addressC,
 		nil,
 		&err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Clean will clean the resources held by the manager.

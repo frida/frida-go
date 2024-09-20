@@ -23,7 +23,6 @@ func (c *Cancellable) Cancel() {
 	C.g_cancellable_cancel(c.cancellable)
 }
 
-
 func (c *Cancellable) Unref() {
 	C.g_object_unref((C.gpointer)(c.cancellable))
 }
@@ -48,15 +47,12 @@ func WithCancel(cancel *Cancellable) OptFunc {
 	}
 }
 
-// FError holds a pointer to GError
-type FError struct {
-	error *C.GError
-}
-
-// Error returns string representation of FError.
-func (f *FError) Error() string {
-	defer clean(unsafe.Pointer(f.error), unrefGError)
-	return fmt.Sprintf("FError: %s", C.GoString(f.error.message))
+func handleGError(gErr *C.GError) error {
+	if gErr == nil {
+		return nil
+	}
+	defer clean(unsafe.Pointer(gErr), unrefGError)
+	return fmt.Errorf("FError: %s", C.GoString(gErr.message))
 }
 
 // MessageType represents all possible message types populated
@@ -91,7 +87,7 @@ type Message struct {
 	IsPayloadMap bool
 }
 
-// ScriptMessageToMessage returns the parsed Message from the message strign received in
+// ScriptMessageToMessage returns the parsed Message from the message string received in
 // script.On("message", func(msg string, data []byte) {}) callback.
 func ScriptMessageToMessage(message string) (*Message, error) {
 	var m Message

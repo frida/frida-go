@@ -31,11 +31,7 @@ func (c *Compiler) Build(entrypoint string) (string, error) {
 
 	var err *C.GError
 	ret := C.frida_compiler_build_sync(c.cc, entrypointC, nil, nil, &err)
-	if err != nil {
-		return "", &FError{err}
-	}
-
-	return C.GoString(ret), nil
+	return C.GoString(ret), handleGError(err)
 }
 
 // Watch watches for changes at the entrypoint and sends the "output" signal.
@@ -45,11 +41,7 @@ func (c *Compiler) Watch(entrypoint string) error {
 
 	var err *C.GError
 	C.frida_compiler_watch_sync(c.cc, entrypointC, nil, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-
-	return nil
+	return handleGError(err)
 }
 
 // Clean will clean resources held by the compiler.

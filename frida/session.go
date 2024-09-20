@@ -22,42 +22,30 @@ func (s *Session) IsDetached() bool {
 func (s *Session) Detach() error {
 	var err *C.GError
 	C.frida_session_detach_sync(s.s, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Resume resumes the current session.
 func (s *Session) Resume() error {
 	var err *C.GError
 	C.frida_session_resume_sync(s.s, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // EnableChildGating enables child gating on the session.
 func (s *Session) EnableChildGating() error {
 	var err *C.GError
 	C.frida_session_enable_child_gating_sync(s.s, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
 
-	return nil
+	return handleGError(err)
 }
 
 // DisableChildGating disables child gating on the session.
 func (s *Session) DisableChildGating() error {
 	var err *C.GError
 	C.frida_session_disable_child_gating_sync(s.s, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
 
-	return nil
+	return handleGError(err)
 }
 
 // CreateScript creates new string from the string provided.
@@ -84,13 +72,10 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 		nil,
 		&err)
 	runtime.KeepAlive(bts)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
 	return &Script{
 		sc: sc,
-	}, nil
+	}, handleGError(err)
 }
 
 func (s *Session) CreateScriptWithSnapshot(script string, snapshot []byte) (*Script, error) {
@@ -116,12 +101,9 @@ func (s *Session) CreateScriptWithOptions(script string, opts *ScriptOptions) (*
 
 	var err *C.GError
 	cScript := C.frida_session_create_script_sync(s.s, sc, opts.opts, nil, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 	return &Script{
 		sc: cScript,
-	}, nil
+	}, handleGError(err)
 }
 
 // CompileScript compiles the script from the script as string provided.
@@ -140,11 +122,8 @@ func (s *Session) CompileScript(script string, opts *ScriptOptions) ([]byte, err
 		opts.opts,
 		nil,
 		&err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return getGBytes(bts), nil
+	return getGBytes(bts), handleGError(err)
 }
 
 // SnapshotScript creates snapshot from the script.
@@ -160,23 +139,14 @@ func (s *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 		nil,
 		&err)
 
-	if err != nil {
-		return nil, &FError{err}
-	}
-
-	bts := getGBytes(ret)
-
-	return bts, nil
+	return getGBytes(ret), handleGError(err)
 }
 
 // SetupPeerConnection sets up peer (p2p) connection with peer options provided.
 func (s *Session) SetupPeerConnection(opts *PeerOptions) error {
 	var err *C.GError
 	C.frida_session_setup_peer_connection_sync(s.s, opts.opts, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // JoinPortal joins portal at the address with portal options provided.
@@ -186,11 +156,8 @@ func (s *Session) JoinPortal(address string, opts *PortalOptions) (*PortalMember
 
 	var err *C.GError
 	mem := C.frida_session_join_portal_sync(s.s, addrC, opts.opts, nil, &err)
-	if err != nil {
-		return nil, &FError{err}
-	}
 
-	return &PortalMembership{mem}, nil
+	return &PortalMembership{mem}, handleGError(err)
 }
 
 // Clean will clean the resources held by the session.

@@ -43,20 +43,14 @@ func (p *Portal) ControlParams() *EndpointParameters {
 func (p *Portal) Start() error {
 	var err *C.GError
 	C.frida_portal_service_start_sync(p.portal, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Stop stops the portal.
 func (p *Portal) Stop() error {
 	var err *C.GError
 	C.frida_portal_service_stop_sync(p.portal, nil, &err)
-	if err != nil {
-		return &FError{err}
-	}
-	return nil
+	return handleGError(err)
 }
 
 // Kick kicks the connection with connectionID provided.
