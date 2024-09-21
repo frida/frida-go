@@ -89,6 +89,7 @@ func (s *Script) DisableDebugger() error {
 // ExportsCall will try to call fn from the rpc.exports with args provided
 func (s *Script) ExportsCall(fn string, args ...any) any {
 	ch := s.makeExportsCall(fn, args...)
+	defer releaseChannel(ch)
 	ret := <-ch
 	return ret
 }
@@ -96,18 +97,12 @@ func (s *Script) ExportsCall(fn string, args ...any) any {
 // ExportsCallWithContext will try to call fn from the rpc.exports with args provided using context provided.
 func (s *Script) ExportsCallWithContext(ctx context.Context, fn string, args ...any) any {
 	ch := s.makeExportsCall(fn, args...)
-
-	for {
-		select {
-		case <-ctx.Done():
-			// because the context is done, we still need to read from the channel
-			go func() {
-				<-ch
-			}()
-			return ErrContextCancelled
-		case ret := <-ch:
-			return ret
-		}
+	defer releaseChannel(ch)
+	select {
+	case <-ctx.Done():
+		return ErrContextCancelled
+	case ret := <-ch:
+		return ret
 	}
 }
 
@@ -169,8 +164,7 @@ func (s *Script) hijackFn(message string, data []byte) {
 		}
 		ch := callerCh.(chan any)
 		ch <- ret
-		close(ch)
-
+		rpcCalls.Delete(rpcID)
 	} else {
 		var args []reflect.Value
 		switch s.fn.Type().NumIn() {
@@ -214,11 +208,35 @@ func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 		rpc[ct] = aIface
 	}
 
-	ch := make(chan any)
+	ch := getChannel()
 	rpcCalls.Store(rpcData[1], ch)
 
 	bt, _ := json.Marshal(rpc)
 	s.Post(string(bt), nil)
 
 	return ch
+}
+
+var channelPool = sync.Pool{
+	New: func() interface{} {
+		return make(chan any, 1)
+	},
+}
+
+func getChannel() chan any {
+	ch := channelPool.Get().(chan any)
+	select {
+	case <-ch:
+	default:
+	}
+
+	return ch
+}
+
+func releaseChannel(ch chan any) {
+	select {
+	case <-ch:
+	default:
+	}
+	channelPool.Put(ch)
 }
