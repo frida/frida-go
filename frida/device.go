@@ -113,6 +113,9 @@ func (d *Device) IsLost() bool {
 	return false
 }
 
+// ParamsCtx runs Params but with context.
+// This function will properly handle cancelling the frida operation.
+// It is advised to use this rather than handling Cancellable yourself.
 func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
 	paramC := make(chan map[string]any, 1)
 	errC := make(chan error, 1)
@@ -143,6 +146,21 @@ func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
 }
 
 // Params returns system parameters of the device
+// You can add an option with the variadic opts argument.
+//
+// Example:
+//
+//	params, err := device.Params()
+//
+//
+//	// or WithCancel
+//
+//	cancel := frida.NewCancellable()
+//	params, err := device.Params(frida.WithCancel(c))
+//
+//	// ...
+//
+//	cancel.Cancel()
 func (d *Device) Params(opts ...OptFunc) (map[string]any, error) {
 	o := setupOptions(opts)
 	return d.params(o)
@@ -186,12 +204,26 @@ func (d *Device) FrontmostApplication(scope Scope) (*Application, error) {
 	return nil, errors.New("could not obtain frontmost app for nil device")
 }
 
+// EnumerateApplications will return slice of applications on the device
+// You can add an option with the variadic opts argument
+//
+// Example:
+//
+//	apps, err := device.EnumerateApplications("", frida.ScopeFull)
+//
+//	// or providing the option to cancel
+//
+//	cancel := frida.NewCancellable()
+//	apps, err := device.EnumerateApplications("", frida.ScopeFull, frida.WithCancel(c))
+//
+//	// ...
+//
+//	cancel.Cancel()
 func (d *Device) EnumerateApplications(identifier string, scope Scope, opts ...OptFunc) ([]*Application, error) {
 	o := setupOptions(opts)
 	return d.enumerateApplications(identifier, scope, o)
 }
 
-// EnumerateApplications will return slice of applications on the device
 func (d *Device) enumerateApplications(identifier string, scope Scope, opts options) ([]*Application, error) {
 	if d.device == nil {
 		return nil, errors.New("could not enumerate applications for nil device")
