@@ -104,7 +104,6 @@ func (s *Script) ExportsCallWithContext(ctx context.Context, fn string, args ...
 	case ret := <-ch:
 		return ret
 	}
-
 }
 
 // Clean will clean the resources held by the script.
@@ -166,7 +165,6 @@ func (s *Script) hijackFn(message string, data []byte) {
 		ch := callerCh.(chan any)
 		ch <- ret
 		rpcCalls.Delete(rpcID)
-
 	} else {
 		var args []reflect.Value
 		switch s.fn.Type().NumIn() {
@@ -239,7 +237,6 @@ func releaseChannel(ch chan any) {
 	select {
 	case <-ch:
 	default:
-
 	}
 	channelPool.Put(ch)
 }
