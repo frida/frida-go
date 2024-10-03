@@ -121,9 +121,12 @@ func (s *Session) CompileScript(script string, opts *ScriptOptions) ([]byte, err
 		scriptC,
 		opts.opts,
 		nil,
-		&err)
-
-	return getGBytes(bts), handleGError(err)
+		&err,
+	)
+	if err != nil {
+		return nil, handleGError(err)
+	}
+	return getGBytes(bts), nil
 }
 
 // SnapshotScript creates snapshot from the script.
@@ -137,9 +140,12 @@ func (s *Session) SnapshotScript(embedScript string, snapshotOpts *SnapshotOptio
 		embedScriptC,
 		snapshotOpts.opts,
 		nil,
-		&err)
-
-	return getGBytes(ret), handleGError(err)
+		&err,
+	)
+	if err != nil {
+		return nil, handleGError(err)
+	}
+	return getGBytes(ret), nil
 }
 
 // SetupPeerConnection sets up peer (p2p) connection with peer options provided.

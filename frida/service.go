@@ -31,8 +31,10 @@ func (s *Service) Request(req any) (any, error) {
 
 	var err *C.GError
 	resp := C.frida_service_request_sync(s.service, variant, nil, &err)
-
-	return gVariantToGo(resp), handleGError(err)
+	if err != nil {
+		return nil, handleGError(err)
+	}
+	return gVariantToGo(resp), nil
 }
 
 func (s *Service) Activate() error {
