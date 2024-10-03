@@ -173,8 +173,10 @@ func (d *Device) params(opts options) (map[string]any, error) {
 
 	var err *C.GError
 	ht := C.frida_device_query_system_parameters_sync(d.device, opts.cancellable, &err)
-
-	return gHashTableToMap(ht), handleGError(err)
+	if err != nil {
+		return nil, handleGError(err)
+	}
+	return gHashTableToMap(ht), nil
 }
 
 // FrontmostApplication will return the frontmost application or the application in focus
