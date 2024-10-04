@@ -20,6 +20,7 @@ type DeviceInt interface {
 	Manager() *DeviceManager
 	IsLost() bool
 	Params(opts ...OptFunc) (map[string]any, error)
+	ParamsCtx(ctx context.Context) (map[string]any, error)
 	FrontmostApplication(scope Scope) (*Application, error)
 	EnumerateApplications(identifier string, scope Scope, opts ...OptFunc) ([]*Application, error)
 	ProcessByPID(pid int, scope Scope) (*Process, error)
@@ -35,7 +36,8 @@ type DeviceInt interface {
 	Input(pid int, data []byte) error
 	Resume(pid int) error
 	Kill(pid int) error
-	Attach(val any, opts *SessionOptions) (*Session, error)
+	Attach(val any, sessionOpts *SessionOptions, opts ...OptFunc) (*Session, error)
+	AttachCtx(ctx context.Context, val any, opts *SessionOptions) (*Session, error)
 	InjectLibraryFile(target any, path, entrypoint, data string) (uint, error)
 	InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error)
 	OpenChannel(address string) (*IOStream, error)
@@ -117,32 +119,16 @@ func (d *Device) IsLost() bool {
 // This function will properly handle cancelling the frida operation.
 // It is advised to use this rather than handling Cancellable yourself.
 func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
-	paramC := make(chan map[string]any, 1)
-	errC := make(chan error, 1)
-
-	c := NewCancellable()
-	go func() {
+	rawParams, err := handleCtx(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
 		params, err := d.Params(WithCancel(c))
 		if err != nil {
 			errC <- err
 			return
 		}
-		paramC <- params
-	}()
-
-	for {
-		select {
-		case <-ctx.Done():
-			c.Cancel()
-			return nil, ErrContextCancelled
-		case params := <-paramC:
-			c.Unref()
-			return params, nil
-		case err := <-errC:
-			c.Unref()
-			return nil, err
-		}
-	}
+		doneC <- params
+	})
+	params, _ := rawParams.(map[string]any)
+	return params, err
 }
 
 // Params returns system parameters of the device
@@ -486,10 +472,31 @@ func (d *Device) Kill(pid int) error {
 	return handleGError(err)
 }
 
+// AttachCtx runs Attach but with context.
+// This function will properly handle cancelling the frida operation.
+// It is advised to use this rather than handling Cancellable yourself.
+func (d *Device) AttachCtx(ctx context.Context, val any, sessionOpts *SessionOptions) (*Session, error) {
+	rawSession, err := handleCtx(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
+		session, err := d.Attach(val, sessionOpts, WithCancel(c))
+		if err != nil {
+			errC <- err
+			return
+		}
+		doneC <- session
+	})
+	session, _ := rawSession.(Session)
+	return &session, err
+}
+
 // Attach will attach on specified process name or PID.
 // You can pass the nil as SessionOptions or you can create it if you want
 // the session to persist for specific timeout.
-func (d *Device) Attach(val any, opts *SessionOptions) (*Session, error) {
+func (d *Device) Attach(val any, sessionOpts *SessionOptions, opts ...OptFunc) (*Session, error) {
+	o := setupOptions(opts)
+	return d.attach(val, sessionOpts, o)
+}
+
+func (d *Device) attach(val any, sessionOpts *SessionOptions, opts options) (*Session, error) {
 	if d.device == nil {
 		return nil, errors.New("could not attach for nil device")
 	}
@@ -508,13 +515,13 @@ func (d *Device) Attach(val any, opts *SessionOptions) (*Session, error) {
 	}
 
 	var opt *C.FridaSessionOptions = nil
-	if opts != nil {
-		opt = opts.opts
+	if sessionOpts != nil {
+		opt = sessionOpts.opts
 		defer clean(unsafe.Pointer(opt), unrefFrida)
 	}
 
 	var err *C.GError
-	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, nil, &err)
+	s := C.frida_device_attach_sync(d.device, C.guint(pid), opt, opts.cancellable, &err)
 	return &Session{s}, handleGError(err)
 }
 

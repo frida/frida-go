@@ -4,6 +4,7 @@ package frida
 import "C"
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"unsafe"
@@ -115,4 +116,26 @@ func ScriptMessageToMessage(message string) (*Message, error) {
 		}
 	}
 	return &m, nil
+}
+
+func handleCtx(ctx context.Context, f func(c *Cancellable, done chan any, errC chan error)) (any, error) {
+	doneC := make(chan any, 1)
+	errC := make(chan error, 1)
+
+	c := NewCancellable()
+	go f(c, doneC, errC)
+
+	for {
+		select {
+		case <-ctx.Done():
+			c.Cancel()
+			return nil, ErrContextCancelled
+		case done := <-doneC:
+			c.Unref()
+			return done, nil
+		case err := <-errC:
+			c.Unref()
+			return nil, err
+		}
+	}
 }
