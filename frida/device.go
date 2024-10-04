@@ -484,8 +484,8 @@ func (d *Device) AttachCtx(ctx context.Context, val any, sessionOpts *SessionOpt
 		}
 		doneC <- session
 	})
-	session, _ := rawSession.(Session)
-	return &session, err
+	session, _ := rawSession.(*Session)
+	return session, err
 }
 
 // Attach will attach on specified process name or PID.
