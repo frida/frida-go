@@ -3,6 +3,7 @@ package frida
 //#include <frida-core.h>
 import "C"
 import (
+	"context"
 	"runtime"
 	"unsafe"
 )
@@ -18,10 +19,26 @@ func (s *Session) IsDetached() bool {
 	return int(detached) == 1
 }
 
+// DetachWithContext runs Detach but with context.
+// This function will properly handle cancelling the frida operation.
+// It is advised to use this rather than handling Cancellable yourself.
+func (s *Session) DetachWithContext(ctx context.Context) error {
+	_, err := handleWithContext(ctx, func(c *Cancellable, done chan any, errC chan error) {
+		errC <- s.Detach(WithCancel(c))
+	})
+	return err
+}
+
 // Detach detaches the current session.
-func (s *Session) Detach() error {
+func (s *Session) Detach(opts ...OptFunc) error {
+	o := setupOptions(opts)
+	return s.detach(o)
+}
+
+// detach
+func (s *Session) detach(opts options) error {
 	var err *C.GError
-	C.frida_session_detach_sync(s.s, nil, &err)
+	C.frida_session_detach_sync(s.s, opts.cancellable, &err)
 	return handleGError(err)
 }
 
