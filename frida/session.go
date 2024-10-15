@@ -19,11 +19,11 @@ func (s *Session) IsDetached() bool {
 	return int(detached) == 1
 }
 
-// DetachCtx runs Detach but with context.
+// DetachWithContext runs Detach but with context.
 // This function will properly handle cancelling the frida operation.
 // It is advised to use this rather than handling Cancellable yourself.
-func (s *Session) DetachCtx(ctx context.Context) error {
-	_, err := handleCtx(ctx, func(c *Cancellable, done chan any, errC chan error) {
+func (s *Session) DetachWithContext(ctx context.Context) error {
+	_, err := handleWithContext(ctx, func(c *Cancellable, done chan any, errC chan error) {
 		errC <- s.Detach(WithCancel(c))
 	})
 	return err

@@ -20,7 +20,7 @@ type DeviceInt interface {
 	Manager() *DeviceManager
 	IsLost() bool
 	Params(opts ...OptFunc) (map[string]any, error)
-	ParamsCtx(ctx context.Context) (map[string]any, error)
+	ParamsWithContext(ctx context.Context) (map[string]any, error)
 	FrontmostApplication(scope Scope) (*Application, error)
 	EnumerateApplications(identifier string, scope Scope, opts ...OptFunc) ([]*Application, error)
 	ProcessByPID(pid int, scope Scope) (*Process, error)
@@ -37,7 +37,7 @@ type DeviceInt interface {
 	Resume(pid int) error
 	Kill(pid int) error
 	Attach(val any, sessionOpts *SessionOptions, opts ...OptFunc) (*Session, error)
-	AttachCtx(ctx context.Context, val any, opts *SessionOptions) (*Session, error)
+	AttachWithContext(ctx context.Context, val any, opts *SessionOptions) (*Session, error)
 	InjectLibraryFile(target any, path, entrypoint, data string) (uint, error)
 	InjectLibraryBlob(target any, byteData []byte, entrypoint, data string) (uint, error)
 	OpenChannel(address string) (*IOStream, error)
@@ -115,11 +115,11 @@ func (d *Device) IsLost() bool {
 	return false
 }
 
-// ParamsCtx runs Params but with context.
+// ParamsWithContext runs Params but with context.
 // This function will properly handle cancelling the frida operation.
 // It is advised to use this rather than handling Cancellable yourself.
-func (d *Device) ParamsCtx(ctx context.Context) (map[string]any, error) {
-	rawParams, err := handleCtx(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
+func (d *Device) ParamsWithContext(ctx context.Context) (map[string]any, error) {
+	rawParams, err := handleWithContext(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
 		params, err := d.Params(WithCancel(c))
 		if err != nil {
 			errC <- err
@@ -472,11 +472,11 @@ func (d *Device) Kill(pid int) error {
 	return handleGError(err)
 }
 
-// AttachCtx runs Attach but with context.
+// AttachWithContext runs Attach but with context.
 // This function will properly handle cancelling the frida operation.
 // It is advised to use this rather than handling Cancellable yourself.
-func (d *Device) AttachCtx(ctx context.Context, val any, sessionOpts *SessionOptions) (*Session, error) {
-	rawSession, err := handleCtx(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
+func (d *Device) AttachWithContext(ctx context.Context, val any, sessionOpts *SessionOptions) (*Session, error) {
+	rawSession, err := handleWithContext(ctx, func(c *Cancellable, doneC chan any, errC chan error) {
 		session, err := d.Attach(val, sessionOpts, WithCancel(c))
 		if err != nil {
 			errC <- err

@@ -118,7 +118,7 @@ func ScriptMessageToMessage(message string) (*Message, error) {
 	return &m, nil
 }
 
-func handleCtx(ctx context.Context, f func(c *Cancellable, done chan any, errC chan error)) (any, error) {
+func handleWithContext(ctx context.Context, f func(c *Cancellable, done chan any, errC chan error)) (any, error) {
 	doneC := make(chan any, 1)
 	errC := make(chan error, 1)
 
