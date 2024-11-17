@@ -15,12 +15,12 @@ jobs:
         frida_version: ["16.3.3"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
       - uses: ./.github/actions/install-frida-devkit
         with:
           arch: ${{ matrix.arch }}
           os: ${{ matrix.os }}
           version: ${{ matrix.frida_version }}
-      - run: go install honnef.co/go/tools/cmd/staticcheck@2023.1.6
+      - run: go install honnef.co/go/tools/cmd/staticcheck@2024.1.1
       - run: ~/go/bin/staticcheck -checks all ./frida
