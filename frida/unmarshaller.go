@@ -13,8 +13,6 @@ package frida
 #endif
 
 #include <frida-core.h>
-#include <stdlib.h>
-#include <string.h>
 
 static char * get_gvalue_gtype(GValue * val) {
 	return (char*)(G_VALUE_TYPE_NAME(val));
