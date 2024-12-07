@@ -18,7 +18,7 @@ Supported OS:
 - [x] MacOS
 - [x] Linux
 - [x] Android
-- [ ] Windows
+- [x] Windows
 
 # Small example
 ```golang
