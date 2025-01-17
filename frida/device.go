@@ -17,7 +17,6 @@ type DeviceInt interface {
 	DeviceIcon() any
 	DeviceType() DeviceType
 	Bus() *Bus
-	Manager() *DeviceManager
 	IsLost() bool
 	Params(opts ...OptFunc) (map[string]any, error)
 	ParamsWithContext(ctx context.Context) (map[string]any, error)
@@ -93,15 +92,6 @@ func (d *Device) Bus() *Bus {
 		return &Bus{
 			bus: bus,
 		}
-	}
-	return nil
-}
-
-// Manager returns device manager for the device.
-func (d *Device) Manager() *DeviceManager {
-	if d.device != nil {
-		mgr := C.frida_device_get_manager(d.device)
-		return &DeviceManager{mgr}
 	}
 	return nil
 }
