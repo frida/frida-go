@@ -8,6 +8,36 @@ import (
 	"unsafe"
 )
 
+// CompilerOptions represent options passed to compiler to build/watch.
+type CompilerOptions struct {
+	c *C.FridaCompilerOptions
+}
+
+// NewCompilerOptions creates new compiler options.
+func NewCompilerOptions() *CompilerOptions {
+	c := C.frida_compiler_options_new()
+	return &CompilerOptions{c: c}
+}
+
+// SetProjectRoot sets the project root, you would use this if your entrypoint
+// script is in another directory besides the current one.
+func (c *CompilerOptions) SetProjectRoot(projectRoot string) {
+	pRoot := C.CString(projectRoot)
+	defer C.free(unsafe.Pointer(pRoot))
+
+	C.frida_compiler_options_set_project_root(c.c, pRoot)
+}
+
+// SetJSCompression allows you to choose compression for generated file.
+func (c *CompilerOptions) SetJSCompression(compress JSCompressionType) {
+
+}
+
+// SetSourceMaps allows you to choose whether you want source maps included or omitted.
+func (c *CompilerOptions) SetSourceMaps(sourceMaps SourceMaps) {
+
+}
+
 // Compiler type is used to compile scripts.
 type Compiler struct {
 	cc *C.FridaCompiler
@@ -25,22 +55,32 @@ func NewCompiler() *Compiler {
 }
 
 // Build builds the script from the entrypoint.
-func (c *Compiler) Build(entrypoint string) (string, error) {
+func (c *Compiler) Build(entrypoint string, opts *CompilerOptions) (string, error) {
 	entrypointC := C.CString(entrypoint)
 	defer C.free(unsafe.Pointer(entrypointC))
 
+	var o *C.FridaBuildOptions = nil
+	if opts != nil {
+		o = (*C.FridaBuildOptions)(opts.c)
+	}
+
 	var err *C.GError
-	ret := C.frida_compiler_build_sync(c.cc, entrypointC, nil, nil, &err)
+	ret := C.frida_compiler_build_sync(c.cc, entrypointC, o, nil, &err)
 	return C.GoString(ret), handleGError(err)
 }
 
 // Watch watches for changes at the entrypoint and sends the "output" signal.
-func (c *Compiler) Watch(entrypoint string) error {
+func (c *Compiler) Watch(entrypoint string, opts *CompilerOptions) error {
 	entrypointC := C.CString(entrypoint)
 	defer C.free(unsafe.Pointer(entrypointC))
 
+	var o *C.FridaWatchOptions = nil
+	if opts != nil {
+		o = (*C.FridaWatchOptions)(opts.c)
+	}
+
 	var err *C.GError
-	C.frida_compiler_watch_sync(c.cc, entrypointC, nil, nil, &err)
+	C.frida_compiler_watch_sync(c.cc, entrypointC, o, nil, &err)
 	return handleGError(err)
 }
 

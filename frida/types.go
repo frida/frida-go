@@ -35,6 +35,20 @@ func (r Realm) String() string {
 		"emulated"}[r]
 }
 
+type JSCompressionType int
+
+const (
+	JSCompressionNone JSCompressionType = iota
+	JSCompressionTerser
+)
+
+type SourceMaps int
+
+const (
+	SourceMapsIncluded SourceMaps = iota
+	SourceMapsOmitted
+)
+
 type ScriptRuntime int
 
 const (
