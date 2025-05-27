@@ -30,12 +30,12 @@ func (c *CompilerOptions) SetProjectRoot(projectRoot string) {
 
 // SetJSCompression allows you to choose compression for generated file.
 func (c *CompilerOptions) SetJSCompression(compress JSCompressionType) {
-
+	C.frida_compiler_options_set_compression(c.c, (C.FridaJsCompression)(compress))
 }
 
 // SetSourceMaps allows you to choose whether you want source maps included or omitted.
 func (c *CompilerOptions) SetSourceMaps(sourceMaps SourceMaps) {
-
+	C.frida_compiler_options_set_source_maps(c.c, (C.FridaSourceMaps)(sourceMaps))
 }
 
 // Compiler type is used to compile scripts.
