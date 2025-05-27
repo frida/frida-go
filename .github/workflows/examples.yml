@@ -15,11 +15,11 @@ jobs:
           - runs_on: ubuntu-latest
             arch: x86_64
             os: linux
-            frida_version: "16.6.3"
+            frida_version: "17.0.5"
           - runs_on: macos-latest
             arch: arm64
             os: macos
-            frida_version: "16.6.3"
+            frida_version: "17.0.5"
     runs-on: ${{ matrix.runs_on }}
     env:
       GOEXPERIMENT: cgocheck2
