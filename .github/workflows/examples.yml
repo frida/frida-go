@@ -37,4 +37,5 @@ jobs:
       - run: |
           gcc -v; for example in ./frida-go-examples/*; do
             go build "$example"
+            pwd && ls -l
           done
