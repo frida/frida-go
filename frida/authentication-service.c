@@ -17,9 +17,9 @@ struct _GoAuthenticationService {
 GoAuthenticationService * frida_go_authentication_service_new (void * callback);
 static void frida_go_authentication_service_iface_init (gpointer g_iface, gpointer iface_data);
 static void frida_go_authentication_service_dispose (GObject * object);
-static void frida_go_authentication_service_authenticate (GoAuthenticationService * service, const gchar * token,
+static void frida_go_authentication_service_authenticate (FridaAuthenticationService * service, const gchar * token,
     GCancellable * cancellable, GAsyncReadyCallback callback, gpointer user_data);
-static gchar * frida_go_authentication_service_authenticate_finish (GoAuthenticationService * service, GAsyncResult * result,
+static gchar * frida_go_authentication_service_authenticate_finish (FridaAuthenticationService * service, GAsyncResult * result,
     GError ** error);
 static void frida_go_authentication_service_do_authenticate (GTask * task, GoAuthenticationService * self);
 
@@ -72,7 +72,7 @@ frida_go_authentication_service_init (GoAuthenticationService * self)
   self->pool = g_thread_pool_new ((GFunc) frida_go_authentication_service_do_authenticate, self, 1, FALSE, NULL);
 }
 
-static void frida_go_authentication_service_authenticate (GoAuthenticationService * service, const gchar * token, 
+static void frida_go_authentication_service_authenticate (FridaAuthenticationService * service, const gchar * token,
 GCancellable * cancellable, GAsyncReadyCallback callback, gpointer user_data)
 {
   GoAuthenticationService * self;
@@ -87,7 +87,7 @@ GCancellable * cancellable, GAsyncReadyCallback callback, gpointer user_data)
 }
 
 static gchar *
-frida_go_authentication_service_authenticate_finish (GoAuthenticationService * service, GAsyncResult * result, GError ** error)
+frida_go_authentication_service_authenticate_finish (FridaAuthenticationService * service, GAsyncResult * result, GError ** error)
 {
   return g_task_propagate_pointer (G_TASK (result), error);
 }
