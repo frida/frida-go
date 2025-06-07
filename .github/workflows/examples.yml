@@ -15,7 +15,7 @@ jobs:
           - runs_on: ubuntu-latest
             arch: x86_64
             os: linux
-            frida_version: "17.0.5"
+            frida_version: "17.1.2"
           - runs_on: macos-latest
             arch: arm64
             os: macos
