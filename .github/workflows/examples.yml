@@ -40,3 +40,4 @@ jobs:
             go build "$example"
             pwd && ls -l
           done
+          ./list_devices
