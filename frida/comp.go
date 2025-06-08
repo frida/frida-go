@@ -38,6 +38,21 @@ func (c *CompilerOptions) SetSourceMaps(sourceMaps SourceMaps) {
 	C.frida_compiler_options_set_source_maps(c.c, (C.FridaSourceMaps)(sourceMaps))
 }
 
+// SetOutputFormat allows to dictate which output format.
+func (c *CompilerOptions) SetOutputFormat(outputFormat OutputFormat) {
+	C.frida_compiler_options_set_output_format(c.c, (C.FridaOutputFormat)(outputFormat))
+}
+
+// SetBundleFormat allows to choose bundle format.
+func (c *CompilerOptions) SetBundleFormat(bundleFormat BundleFormat) {
+	C.frida_compiler_options_set_bundle_format(c.c, (C.FridaBundleFormat)(bundleFormat))
+}
+
+// SetTypeCheckMode allows to set which type checking option to have while compiling.
+func (c *CompilerOptions) SetTypeCheckMode(typeCheckMode TypeCheckMode) {
+	C.frida_compiler_options_set_type_check(c.c, (C.FridaTypeCheckMode)(typeCheckMode))
+}
+
 // Compiler type is used to compile scripts.
 type Compiler struct {
 	cc *C.FridaCompiler

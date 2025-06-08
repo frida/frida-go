@@ -49,6 +49,28 @@ const (
 	SourceMapsOmitted
 )
 
+type OutputFormat int
+
+const (
+	OutputFormatUnescaped OutputFormat = iota
+	OutputFormatHexBytes
+	OutputFormatCString
+)
+
+type BundleFormat int
+
+const (
+	BundleFormatESM BundleFormat = iota
+	BundleFormatIIFE
+)
+
+type TypeCheckMode int
+
+const (
+	TypeCheckModeFull TypeCheckMode = iota
+	TypeCheckModeNone
+)
+
 type ScriptRuntime int
 
 const (
