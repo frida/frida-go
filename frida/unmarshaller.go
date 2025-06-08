@@ -1,10 +1,18 @@
 package frida
 
 /*
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "Ws2_32.lib")
+	typedef unsigned short in_port_t;
+#else
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+#endif
+
 #include <frida-core.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
 static char * get_gvalue_gtype(GValue * val) {
 	return (char*)(G_VALUE_TYPE_NAME(val));
