@@ -26,7 +26,6 @@ jobs:
           CXX: x86_64-w64-mingw32-g++
         run: |
           cd ffrida/subprojects/frida-core
-          git apply /tmp/patcherino.patch
           ./configure --host=x86_64-w64-mingw32 --without-prebuilds=sdk:host --with-devkits=core 
           make
           mkdir /tmp/frida-core-devkit
