@@ -18,14 +18,14 @@ jobs:
         run: sudo apt update && sudo apt install -y golang nodejs npm git g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
       - name: Download frida
         run: |
-          git clone https://github.com/frida/frida.git && cd frida/
+          git clone https://github.com/frida/frida.git ffrida && cd ffrida/
           python3 tools/ensure-submodules.py frida-core
       - name: Build frida-core
         env:
           CC: x86_64-w64-mingw32-gcc
           CXX: x86_64-w64-mingw32-g++
         run: |
-          cd frida/subprojects/frida-core
+          cd ffrida/subprojects/frida-core
           git apply /tmp/patcherino.patch
           ./configure --host=x86_64-w64-mingw32 --without-prebuilds=sdk:host --with-devkits=core 
           make
