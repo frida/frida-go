@@ -1,0 +1,81 @@
+name: Build frida-core mingw devkit
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Copy patch
+        run: cp ./patcherino.patch /tmp/
+      - name: Install python3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install necessary packages
+        run: sudo apt update && sudo apt install -y golang nodejs npm git g++-mingw-w64-x86-64 gcc-mingw-w64-x86-64
+      - name: Download frida
+        run: |
+          git clone https://github.com/frida/frida.git && cd frida/
+          python3 tools/ensure-submodules.py frida-core
+      - name: Build frida-core
+        env:
+          CC: x86_64-w64-mingw32-gcc
+          CXX: x86_64-w64-mingw32-g++
+        run: |
+          cd frida/subprojects/frida-core
+          git apply /tmp/patcherino.patch
+          ./configure --host=x86_64-w64-mingw32 --without-prebuilds=sdk:host --with-devkits=core 
+          make
+          mkdir /tmp/frida-core-devkit
+          cp ./build/src/devkit/* /tmp/frida-core-devkit/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frida-core-devkit-windows-x86-64
+          path: /tmp/frida-core-devkit/
+  compile:
+    runs-on: windows-latest
+    needs:
+      - build
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Install MinGW toolchain
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-go
+            mingw-w64-x86_64-python
+            git
+            zip
+      - name: Download libfrida-core.a
+        uses: actions/download-artifact@v4
+        with:
+          name: frida-core-devkit-windows-x86-64
+          path: frida-core-devkit
+      - name: Clone frida-go and frida-go-examples
+        run: git clone https://github.com/frida/frida-go.git && git clone https://github.com/NSEcho/frida-go-examples.git
+      - name: Extract devkit
+        run: zip -r frida-core-devkit.zip frida-core-devkit
+      - name: Prepare for building
+        run: |
+          ls -l
+          cp frida-core-devkit/libfrida-core.a /mingw64/lib/
+          cp frida-core-devkit/frida-core.h /mingw64/include/
+          cp frida-go-examples/list_devices/list_devices.go frida-go/main.go
+      - name: Build and run example program
+        env:
+          CGO_ENABLED: 1
+        run: |
+          cd frida-go
+          go build -o ll main.go && ./ll
+    
