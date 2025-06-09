@@ -10,8 +10,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Copy patch
-        run: cp ./patcherino.patch /tmp/
       - name: Install python3.11
         uses: actions/setup-python@v5
         with:
