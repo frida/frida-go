@@ -197,7 +197,12 @@ func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 	copy(aIface, args)
 
 	ct := 0
-	rpc := make([]any, len(rpcData)+len(aIface))
+	var rpc []any
+	if len(aIface) > 0 {
+		rpc = make([]any, len(rpcData)+len(aIface))
+	} else {
+		rpc = make([]any, len(rpcData) + 1)
+	}
 
 	for i := 0; i < len(rpcData); i++ {
 		rpc[ct] = rpcData[i]
@@ -206,6 +211,8 @@ func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 
 	if len(aIface) > 0 {
 		rpc[ct] = aIface
+	} else {
+		rpc[ct] = []struct{}{}
 	}
 
 	ch := getChannel()
