@@ -180,9 +180,10 @@ func (s *Script) hijackFn(message string, data []byte) {
 
 func newRPCCall(fnName string) []any {
 	id := uuid.New()
+	rpcID := string(append([]byte(nil), id.String()[:16]...))
 	dt := []any{
 		"frida:rpc",
-		id.String()[:16],
+		rpcID,
 		"call",
 		fnName,
 	}
@@ -201,7 +202,7 @@ func (s *Script) makeExportsCall(fn string, args ...any) chan any {
 	if len(aIface) > 0 {
 		rpc = make([]any, len(rpcData)+len(aIface))
 	} else {
-		rpc = make([]any, len(rpcData) + 1)
+		rpc = make([]any, len(rpcData)+1)
 	}
 
 	for i := 0; i < len(rpcData); i++ {
