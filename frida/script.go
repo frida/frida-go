@@ -143,7 +143,6 @@ func getRPCIDFromMessage(message string) (string, any, error) {
 				slc := v.([]any)
 				rpcID = slc[1].(string)
 				ret = slc[3]
-
 			}
 		}
 	}
