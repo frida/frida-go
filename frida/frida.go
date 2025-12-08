@@ -95,7 +95,7 @@ func DeviceByID(id string) (*Device, error) {
 			return nil, err
 		}
 		data.Store(id, dev)
-		return v.(*Device), nil
+		return dev.(*Device), nil
 	}
 	return v.(*Device), nil
 }
