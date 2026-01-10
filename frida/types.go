@@ -189,3 +189,75 @@ type Address struct {
 func (a *Address) String() string {
 	return fmt.Sprintf("%s:%d", a.Addr, a.Port)
 }
+
+type PackageInstallPhase int
+
+const (
+	PackageInstallPhaseInitializing PackageInstallPhase = iota
+	PackageInstallPhasePreparingDependencies
+	PackageInstallPhaseResolvingPackage
+	PackageInstallPhaseFetchingResource
+	PackageInstallPhasePackageAlreadyInstalled
+	PackageInstallPhaseDownloadingPackage
+	PackageInstallPhasePackageInstalled
+	PackageInstallPhaseResolvingAndInstallingAll
+	PackageInstallPhaseComplete
+)
+
+func (p PackageInstallPhase) String() string {
+	return [...]string{"initializing",
+		"preparing_dependencies",
+		"resolving_package",
+		"fetching_resource",
+		"package_already_installed",
+		"downloading_package",
+		"package_installed",
+		"resolving_and_installing_all",
+		"complete"}[p]
+}
+
+type PackageRole int
+
+const (
+	PackageRoleRuntime PackageRole = iota
+	PackageRoleDevelopment
+	PackageRoleOptional
+	PackageRolePeer
+)
+
+func (p PackageRole) String() string {
+	return [...]string{"runtime",
+		"development",
+		"optional",
+		"peer"}[p]
+}
+
+type JsPlatform int
+
+const (
+	JsPlatformGum JsPlatform = iota
+	JsPlatformBrowser
+	JsPlatformNeutral
+)
+
+func (j JsPlatform) String() string {
+	return [...]string{"gum",
+		"browser",
+		"neutral"}[j]
+}
+
+type GadgetBreakpointAction int
+
+const (
+	GadgetBreakpointActionInvokeReturn GadgetBreakpointAction = iota
+	GadgetBreakpointActionResume
+	GadgetBreakpointActionDetach
+	GadgetBreakpointActionPagePlan
+)
+
+func (g GadgetBreakpointAction) String() string {
+	return [...]string{"invoke_return",
+		"resume",
+		"detach",
+		"page_plan"}[g]
+}
