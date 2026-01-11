@@ -64,7 +64,7 @@ func (p *Package) GetDescription() string {
 	return C.GoString(rt)
 }
 
-func (p *Package) GetUrl() string {
+func (p *Package) GetURL() string {
 	rt := C.frida_package_get_url(p.p)
 	return C.GoString(rt)
 }
