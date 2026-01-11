@@ -21,5 +21,5 @@ jobs:
           arch: ${{ matrix.arch }}
           os: ${{ matrix.os }}
           version: ${{ matrix.frida_version }}
-      - run: go install honnef.co/go/tools/cmd/staticcheck@2024.1.1
+      - run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - run: ~/go/bin/staticcheck -checks all ./frida
