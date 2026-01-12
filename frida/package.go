@@ -144,15 +144,6 @@ func (p *PackageInstallOptions) SetProjectRoot(value string) {
 	C.frida_package_install_options_set_project_root(p.p, valueC)
 }
 
-func (p *PackageInstallOptions) GetRole() PackageRole {
-	rt := C.frida_package_install_options_get_role(p.p)
-	return PackageRole(rt)
-}
-
-func (p *PackageInstallOptions) SetRole(value PackageRole) {
-	C.frida_package_install_options_set_role(p.p, C.FridaPackageRole(value))
-}
-
 func (p *PackageInstallOptions) ClearSpecs() {
 	C.frida_package_install_options_clear_specs(p.p)
 }
@@ -162,14 +153,6 @@ func (p *PackageInstallOptions) AddSpec(spec string) {
 	defer C.free(unsafe.Pointer(specC))
 
 	C.frida_package_install_options_add_spec(p.p, specC)
-}
-
-func (p *PackageInstallOptions) ClearOmits() {
-	C.frida_package_install_options_clear_omits(p.p)
-}
-
-func (p *PackageInstallOptions) AddOmit(role PackageRole) {
-	C.frida_package_install_options_add_omit(p.p, C.FridaPackageRole(role))
 }
 
 type PackageInstallResult struct {

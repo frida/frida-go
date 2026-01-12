@@ -216,22 +216,6 @@ func (p PackageInstallPhase) String() string {
 		"complete"}[p]
 }
 
-type PackageRole int
-
-const (
-	PackageRoleRuntime PackageRole = iota
-	PackageRoleDevelopment
-	PackageRoleOptional
-	PackageRolePeer
-)
-
-func (p PackageRole) String() string {
-	return [...]string{"runtime",
-		"development",
-		"optional",
-		"peer"}[p]
-}
-
 type JsPlatform int
 
 const (
