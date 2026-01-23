@@ -26,6 +26,7 @@ jobs:
           CXX: x86_64-w64-mingw32-g++
         run: |
           cd ffrida/subprojects/frida-core
+          git remote set-url origin https://github.com/NSEcho/frida-core.git && git fetch origin main:main && git checkout main
           ./configure --host=x86_64-w64-mingw32 --without-prebuilds=sdk:host --with-devkits=core 
           make
           mkdir /tmp/frida-core-devkit
@@ -65,7 +66,6 @@ jobs:
         run: zip -r frida-core-devkit.zip frida-core-devkit
       - name: Prepare for building
         run: |
-          ls -l
           cp frida-core-devkit/libfrida-core.a /mingw64/lib/
           cp frida-core-devkit/frida-core.h /mingw64/include/
           cp frida-go-examples/list_devices/list_devices.go frida-go/main.go
