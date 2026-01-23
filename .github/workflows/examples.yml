@@ -18,7 +18,7 @@ jobs:
           - runs_on: macos-latest
             arch: arm64
             os: macos
-            frida_version: "17.5.2"
+            frida_version: "17.6.1"
     runs-on: ${{ matrix.runs_on }}
     env:
       GOEXPERIMENT: cgocheck2
