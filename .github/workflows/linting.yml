@@ -14,8 +14,8 @@ jobs:
         frida_version: ["17.6.1"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
       - uses: ./.github/actions/install-frida-devkit
         with:
           arch: ${{ matrix.arch }}
