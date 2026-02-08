@@ -70,6 +70,7 @@ const (
 	fridaCrash               gTypeName = "FridaCrash"
 	fridaSessionDetachReason gTypeName = "FridaSessionDetachReason"
 	fridaChild               gTypeName = "FridaChild"
+	fridaSpawn               gTypeName = "FridaSpawn"
 	fridaDevice              gTypeName = "FridaDevice"
 	fridaApplication         gTypeName = "FridaApplication"
 	guint                    gTypeName = "guint"
@@ -87,6 +88,7 @@ var gTypeString = map[gTypeName]unmarshallerFunc{
 	fridaCrash:               getFridaCrash,
 	fridaSessionDetachReason: getFridaSessionDetachReason,
 	fridaChild:               getFridaChild,
+	fridaSpawn:               getFridaSpawn,
 	fridaDevice:              getFridaDevice,
 	fridaApplication:         getFridaApplication,
 	guint:                    getInt,
@@ -151,6 +153,14 @@ func getFridaChild(val *C.GValue) any {
 
 	return &Child{
 		child: child,
+	}
+}
+
+func getFridaSpawn(val *C.GValue) any {
+	spawn := (*C.FridaSpawn)(C.g_value_get_object(val))
+
+	return &Spawn{
+		spawn: spawn,
 	}
 }
 

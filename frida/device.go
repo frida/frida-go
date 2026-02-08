@@ -432,13 +432,18 @@ func (d *Device) Input(pid int, data []byte) error {
 
 	}
 	gBytesData := goBytesToGBytes(data)
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
+	wrapper := &GBytesWrapper{ptr: gBytesData}
+
+	runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+		clean(unsafe.Pointer(w.ptr), unrefGObject)
+		w.ptr = nil
 	})
 
 	var err *C.GError
 	C.frida_device_input_sync(d.device, C.guint(pid), gBytesData, nil, &err)
-	runtime.KeepAlive(gBytesData)
+
+	runtime.KeepAlive(wrapper)
+
 	return handleGError(err)
 }
 
@@ -608,8 +613,11 @@ func (d *Device) InjectLibraryBlob(target any, byteData []byte, entrypoint, data
 	}
 
 	gBytesData := goBytesToGBytes(byteData)
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		defer clean(unsafe.Pointer(g), unrefGObject)
+	wrapper := &GBytesWrapper{ptr: gBytesData}
+
+	runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+		defer clean(unsafe.Pointer(w.ptr), unrefGObject)
+		w.ptr = nil
 	})
 
 	var err *C.GError
@@ -620,7 +628,8 @@ func (d *Device) InjectLibraryBlob(target any, byteData []byte, entrypoint, data
 		dataC,
 		nil,
 		&err)
-	runtime.KeepAlive(gBytesData)
+
+	runtime.KeepAlive(wrapper)
 
 	return uint(id), handleGError(err)
 }

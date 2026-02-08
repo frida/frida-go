@@ -72,6 +72,6 @@ func parse(v reflect.Value) *C.GVariant {
 	default:
 		msg := fmt.Sprintf("type \"%s\" not implemented, please file an issue on github", v.Kind().String())
 		panic(msg)
+		return nil
 	}
-	return nil
 }

@@ -32,11 +32,14 @@ func (b *Bus) Post(msg string, data []byte) {
 	defer C.free(unsafe.Pointer(msgC))
 
 	gBytesData := goBytesToGBytes(data)
-	runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
+	wrapper := &GBytesWrapper{ptr: gBytesData}
+
+	runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+		clean(unsafe.Pointer(w.ptr), unrefGObject)
+		w.ptr = nil
 	})
 	C.frida_bus_post(b.bus, msgC, gBytesData)
-	runtime.KeepAlive(gBytesData)
+	runtime.KeepAlive(wrapper)
 }
 
 // Clean will clean resources held by the bus.

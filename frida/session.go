@@ -73,8 +73,11 @@ func (s *Session) CreateScript(script string) (*Script, error) {
 // CreateScriptBytes is a wrapper around CreateScript(script string)
 func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script, error) {
 	bts := goBytesToGBytes(script)
-	runtime.SetFinalizer(bts, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
+	wrapper := &GBytesWrapper{ptr: bts}
+
+	runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+		clean(unsafe.Pointer(w.ptr), unrefGObject)
+		w.ptr = nil
 	})
 
 	if opts == nil {
@@ -88,7 +91,8 @@ func (s *Session) CreateScriptBytes(script []byte, opts *ScriptOptions) (*Script
 		opts.opts,
 		nil,
 		&err)
-	runtime.KeepAlive(bts)
+
+	runtime.KeepAlive(wrapper)
 
 	return &Script{
 		sc: sc,

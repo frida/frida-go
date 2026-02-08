@@ -37,11 +37,16 @@ func (s *ScriptOptions) SetName(name string) {
 // SetSnapshot sets the snapshot for the script.
 func (s *ScriptOptions) SetSnapshot(value []byte) {
 	bts := goBytesToGBytes(value)
-	runtime.SetFinalizer(bts, func(g *C.GBytes) {
-		clean(unsafe.Pointer(g), unrefGObject)
+	wrapper := &GBytesWrapper{ptr: bts}
+
+	runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+		clean(unsafe.Pointer(w.ptr), unrefGObject)
+		w.ptr = nil
 	})
+
 	C.frida_script_options_set_snapshot(s.opts, bts)
-	runtime.KeepAlive(bts)
+
+	runtime.KeepAlive(wrapper)
 }
 
 // SetSnapshotTransport sets the transport for the snapshot

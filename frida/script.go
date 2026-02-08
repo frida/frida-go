@@ -60,12 +60,14 @@ func (s *Script) Post(jsonString string, data []byte) {
 
 	if len(data) > 0 {
 		gBytesData := goBytesToGBytes(data)
+		wrapper := &GBytesWrapper{ptr: gBytesData}
 
-		runtime.SetFinalizer(gBytesData, func(g *C.GBytes) {
-			clean(unsafe.Pointer(g), unrefGObject)
+		runtime.SetFinalizer(wrapper, func(w *GBytesWrapper) {
+			clean(unsafe.Pointer(w.ptr), unrefGObject)
+			w.ptr = nil
 		})
 		C.frida_script_post(s.sc, jsonStringC, gBytesData)
-		runtime.KeepAlive(gBytesData)
+		runtime.KeepAlive(wrapper)
 	} else {
 		C.frida_script_post(s.sc, jsonStringC, nil)
 	}

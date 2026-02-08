@@ -245,3 +245,7 @@ func (g GadgetBreakpointAction) String() string {
 		"detach",
 		"page_plan"}[g]
 }
+
+type GBytesWrapper struct {
+	ptr *C.GBytes
+}
