@@ -1,9 +1,30 @@
 package frida
 
-//#include <frida-core.h>
+/*#include <frida-core.h>
+extern gboolean predicateFn(FridaDevice* device, gpointer user_data);
+
+static FridaDeviceManagerPredicate manager_predicate() {
+	return (FridaDeviceManagerPredicate)predicateFn;
+}
+*/
 import "C"
 
-import "unsafe"
+import (
+	"unsafe"
+)
+
+//export predicateFn
+func predicateFn(device *C.FridaDevice, userData C.gpointer) C.gboolean {
+	name := C.GoString(C.frida_device_get_name(device))
+	id := C.GoString(C.frida_device_get_id(device))
+	predicate := C.GoString((*C.char)(unsafe.Pointer(userData)))
+
+	if name == predicate || id == predicate {
+		return C.gboolean(1)
+	}
+
+	return C.gboolean(0)
+}
 
 // DeviceManagerInt is the device DeviceManagerInt interface
 type DeviceManagerInt interface {
@@ -12,6 +33,7 @@ type DeviceManagerInt interface {
 	LocalDevice() (DeviceInt, error)
 	USBDevice() (DeviceInt, error)
 	RemoteDevice() (DeviceInt, error)
+	Device(id string) (DeviceInt, error)
 	DeviceByID(id string) (DeviceInt, error)
 	DeviceByType(devType DeviceType) (DeviceInt, error)
 	FindDeviceByID(id string) (DeviceInt, error)
@@ -76,6 +98,18 @@ func (d *DeviceManager) USBDevice() (DeviceInt, error) {
 // RemoteDevice returns the device with type DeviceTypeRemote.
 func (d *DeviceManager) RemoteDevice() (DeviceInt, error) {
 	return d.DeviceByType(DeviceTypeRemote)
+}
+
+// Device returns the device based on the id that will match either device name or its ID
+func (d *DeviceManager) Device(id string) (DeviceInt, error) {
+	idc := C.CString(id)
+	defer C.free(unsafe.Pointer(idc))
+
+	// result = frida_device_manager_get_device_sync (PY_GOBJECT_HANDLE (self), (FridaDeviceManagerPredicate) PyDeviceManager_is_matching_device,
+	// predicate, timeout, g_cancellable_get_current (), &error);
+	var err *C.GError
+	device := C.frida_device_manager_get_device_sync(d.manager, C.manager_predicate(), C.gpointer(idc), C.gint(1000), nil, &err)
+	return &Device{device: device}, handleGError(err)
 }
 
 // DeviceByID will return device with id passed or an error if it can't find any.
