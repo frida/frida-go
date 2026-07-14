@@ -249,3 +249,17 @@ func (g GadgetBreakpointAction) String() string {
 type GBytesWrapper struct {
 	ptr *C.GBytes
 }
+
+type Exceptor int
+
+const (
+	ExceptorFull Exceptor = iota
+	ExceptorHandlerOnly
+	ExceptorOff
+)
+
+func (e Exceptor) String() string {
+	return [...]string{"full",
+		"handler-only",
+		"off"}[e]
+}
