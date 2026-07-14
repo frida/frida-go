@@ -30,7 +30,7 @@ func (s *SessionOptions) PersistTimeout() int {
 	return int(C.frida_session_options_get_persist_timeout(s.opts))
 }
 
-// Sets Frida's exception handling mode.
+// SetExceptor sets Frida's exception handling mode.
 func (s *SessionOptions) SetExceptor(exceptor Exceptor) {
 	C.frida_session_options_set_exceptor(s.opts, C.FridaExceptor(exceptor))
 }
