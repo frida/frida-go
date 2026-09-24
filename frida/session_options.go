@@ -35,6 +35,20 @@ func (s *SessionOptions) SetExceptor(exceptor Exceptor) {
 	C.frida_session_options_set_exceptor(s.opts, C.FridaExceptor(exceptor))
 }
 
+// SetExitMonitor enables or disables Frida's exit monitor.
+func (s *SessionOptions) SetExitMonitor(enabled bool) {
+	value := C.gboolean(0)
+	if enabled {
+		value = 1
+	}
+	C.frida_session_options_set_exit_monitor(s.opts, value)
+}
+
+// ExitMonitor reports whether Frida's exit monitor is enabled.
+func (s *SessionOptions) ExitMonitor() bool {
+	return C.frida_session_options_get_exit_monitor(s.opts) != 0
+}
+
 // Clean will clean the resources held by the session options.
 func (s *SessionOptions) Clean() {
 	clean(unsafe.Pointer(s.opts), unrefFrida)
