@@ -7,20 +7,17 @@ import (
 	"encoding/json"
 	"reflect"
 	"runtime"
-	"strings"
 	"sync"
+	"sync/atomic"
 	"unsafe"
-
-	"github.com/google/uuid"
 )
-
-var rpcCalls = sync.Map{}
 
 // Script represents loaded string in the memory.
 type Script struct {
-	hasHandler bool
-	sc         *C.FridaScript
-	fn         reflect.Value
+	sc                 *C.FridaScript
+	messageHandlerOnce sync.Once
+	messageHandler     atomic.Pointer[reflect.Value]
+	pendingCalls       pendingScriptRPCCalls
 }
 
 // IsDestroyed function returns whether the script previously loaded is destroyed (could be caused by unload)
@@ -31,9 +28,7 @@ func (s *Script) IsDestroyed() bool {
 
 // Load function loads the script into the process.
 func (s *Script) Load() error {
-	if !s.hasHandler {
-		s.On("message", func() {})
-	}
+	s.ensureMessageHandler()
 	var err *C.GError
 	C.frida_script_load_sync(s.sc, nil, &err)
 	return handleGError(err)
@@ -90,22 +85,24 @@ func (s *Script) DisableDebugger() error {
 
 // ExportsCall will try to call fn from the rpc.exports with args provided
 func (s *Script) ExportsCall(fn string, args ...any) any {
-	ch := s.makeExportsCall(fn, args...)
-	defer releaseChannel(ch)
-	ret := <-ch
-	return ret
+	return s.callExport(context.Background(), fn, args, s.postRPCRequest)
 }
 
 // ExportsCallWithContext will try to call fn from the rpc.exports with args provided using context provided.
 func (s *Script) ExportsCallWithContext(ctx context.Context, fn string, args ...any) any {
-	ch := s.makeExportsCall(fn, args...)
-	defer releaseChannel(ch)
-	select {
-	case <-ctx.Done():
-		return ErrContextCancelled
-	case ret := <-ch:
-		return ret
+	return s.callExport(ctx, fn, args, s.postRPCRequest)
+}
+
+func (s *Script) postRPCRequest(ctx context.Context, request scriptRPCRequest) error {
+	message, err := json.Marshal(request)
+	if err != nil {
+		return err
 	}
+	if ctx.Err() != nil {
+		return ErrContextCancelled
+	}
+	s.Post(string(message), nil)
+	return nil
 }
 
 // Clean will clean the resources held by the script.
@@ -120,132 +117,45 @@ func (s *Script) Clean() {
 //   - "destroyed" with callback as func() {}
 //   - "message" with callback as func(message string, data []byte) {}
 func (s *Script) On(sigName string, fn any) {
-	s.hasHandler = true
-	// hijack message to handle rpc calls
 	if sigName == "message" {
-		s.fn = reflect.ValueOf(fn)
-		connectClosure(unsafe.Pointer(s.sc), sigName, s.hijackFn)
+		s.setMessageHandler(fn)
+		s.ensureMessageHandler()
 	} else {
 		connectClosure(unsafe.Pointer(s.sc), sigName, fn)
 	}
 }
 
-func getRPCIDFromMessage(message string) (string, any, error) {
-	unmarshalled := make(map[string]any)
-	if err := json.Unmarshal([]byte(message), &unmarshalled); err != nil {
-		return "", nil, err
+func (s *Script) ensureMessageHandler() {
+	s.messageHandlerOnce.Do(func() {
+		connectClosure(unsafe.Pointer(s.sc), "message", s.dispatchMessage)
+	})
+}
+
+func (s *Script) setMessageHandler(fn any) {
+	v := reflect.ValueOf(fn)
+	if v.Kind() != reflect.Func {
+		panic("got no function")
 	}
+	s.messageHandler.Store(&v)
+}
 
-	var rpcID string
-	var ret any
-
-	loopMap := func(mp map[string]any) {
-		for _, v := range mp {
-			if reflect.ValueOf(v).Kind() == reflect.Slice {
-				slc := v.([]any)
-				rpcID = slc[1].(string)
-				ret = slc[3]
-			}
+func (s *Script) dispatchMessage(message string, data []byte) {
+	if reply, isRPC := decodeScriptRPCReply(message); isRPC {
+		if reply != nil {
+			s.pendingCalls.complete(*reply)
 		}
+		return
 	}
-	loopMap(unmarshalled)
-
-	return rpcID, ret, nil
-}
-
-func (s *Script) hijackFn(message string, data []byte) {
-	if strings.Contains(message, "frida:rpc") {
-		rpcID, ret, err := getRPCIDFromMessage(message)
-		if err != nil {
-			panic(err)
-		}
-		callerCh, ok := rpcCalls.Load(rpcID)
-		if !ok {
-			panic("rpc-id not found")
-		}
-		ch := callerCh.(chan any)
-		ch <- ret
-		rpcCalls.Delete(rpcID)
-	} else {
-		var args []reflect.Value
-		switch s.fn.Type().NumIn() {
-		case 1:
-			args = append(args, reflect.ValueOf(message))
-		case 2:
-			args = append(args, reflect.ValueOf(message))
-			args = append(args, reflect.ValueOf(data))
-		}
-		s.fn.Call(args)
+	fn := s.messageHandler.Load()
+	if fn == nil {
+		return
 	}
-}
-
-func newRPCCall(fnName string) []any {
-	id := uuid.New()
-	rpcID := string(append([]byte(nil), id.String()[:16]...))
-	dt := []any{
-		"frida:rpc",
-		rpcID,
-		"call",
-		fnName,
+	var args []reflect.Value
+	switch fn.Type().NumIn() {
+	case 1:
+		args = append(args, reflect.ValueOf(message))
+	case 2:
+		args = append(args, reflect.ValueOf(message), reflect.ValueOf(data))
 	}
-
-	return dt
-}
-
-func (s *Script) makeExportsCall(fn string, args ...any) chan any {
-	rpcData := newRPCCall(fn)
-
-	aIface := make([]any, len(args))
-	copy(aIface, args)
-
-	ct := 0
-	var rpc []any
-	if len(aIface) > 0 {
-		rpc = make([]any, len(rpcData)+len(aIface))
-	} else {
-		rpc = make([]any, len(rpcData)+1)
-	}
-
-	for i := 0; i < len(rpcData); i++ {
-		rpc[ct] = rpcData[i]
-		ct++
-	}
-
-	if len(aIface) > 0 {
-		rpc[ct] = aIface
-	} else {
-		rpc[ct] = []struct{}{}
-	}
-
-	ch := getChannel()
-	rpcCalls.Store(rpcData[1], ch)
-
-	bt, _ := json.Marshal(rpc)
-	s.Post(string(bt), nil)
-
-	return ch
-}
-
-var channelPool = sync.Pool{
-	New: func() interface{} {
-		return make(chan any, 1)
-	},
-}
-
-func getChannel() chan any {
-	ch := channelPool.Get().(chan any)
-	select {
-	case <-ch:
-	default:
-	}
-
-	return ch
-}
-
-func releaseChannel(ch chan any) {
-	select {
-	case <-ch:
-	default:
-	}
-	channelPool.Put(ch)
+	fn.Call(args)
 }

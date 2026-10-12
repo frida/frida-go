@@ -12,7 +12,7 @@ package frida
 #cgo windows LDFLAGS: -lws2_32 -lgdi32 -lole32 -liphlpapi -lsetupapi -lpsapi -lshell32 -lshlwapi -ldnsapi -lcrypt32 -luuid -lshfolder
 #cgo CFLAGS: -I/usr/local/include/ -w
 #cgo windows CFLAGS: -Wno-error=incompatible-pointer-types
-#cgo darwin LDFLAGS: -lbsm -framework IOKit -framework Foundation -framework AppKit -framework Security -lpthread
+#cgo darwin LDFLAGS: -lbsm -lresolv -framework IOKit -framework Foundation -framework AppKit -framework Security -lpthread
 #cgo darwin CFLAGS: -Wno-error=incompatible-function-pointer-types
 #cgo android LDFLAGS: -llog
 #cgo android CFLAGS: -DANDROID -Wno-error=incompatible-function-pointer-types
