@@ -20,6 +20,22 @@ Supported OS:
 - [x] Android
 - [x] Windows
 
+# Tests
+
+With the Frida devkit configured, run `go test ./frida` for unit tests.
+
+Native RPC integration tests run on macOS and Linux:
+
+```sh
+make test-integration
+```
+
+This builds the C fixture, signs it on macOS, and runs the tests with the race
+detector. Fixture compilation uses `CC`, `CPPFLAGS`, `CFLAGS`, `LDFLAGS`, and
+`LDLIBS`; `GO` selects the Go executable. Override `TESTFLAGS` to select tests or
+change test options. Each test starts and cleans up its own fixture process.
+Run `make clean` to remove the built fixture.
+
 # Small example
 ```golang
 package main
