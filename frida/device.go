@@ -1,6 +1,18 @@
 package frida
 
-//#include <frida-core.h>
+/*
+#include <frida-core.h>
+
+static void
+frida_go_enable_spawn_gating_sync (FridaDevice * device, GError ** error)
+{
+#if FRIDA_CHECK_VERSION(17, 16, 0)
+  frida_device_enable_spawn_gating_sync (device, NULL, NULL, error);
+#else
+  frida_device_enable_spawn_gating_sync (device, NULL, error);
+#endif
+}
+*/
 import "C"
 import (
 	"context"
@@ -343,7 +355,7 @@ func (d *Device) EnableSpawnGating() error {
 	}
 
 	var err *C.GError
-	C.frida_device_enable_spawn_gating_sync(d.device, nil, &err)
+	C.frida_go_enable_spawn_gating_sync(d.device, &err)
 	return handleGError(err)
 }
 
